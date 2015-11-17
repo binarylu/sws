@@ -63,7 +63,7 @@ int main(int argc, char *argv[])
 void
 usage()
 {
-    printf("sws [ −dh ] [ −c dir ] [ −i address ] [ −l file ] [ −p port ] dir\n");
+    printf("sws [ -dh ] [ -c dir ] [ -i address ] [ -l file ] [ -p port ] dir\n");
 }
 
 int
