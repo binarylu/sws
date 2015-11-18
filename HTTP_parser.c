@@ -188,6 +188,19 @@ request_header(const char *str, _request *req)
         return NULL;
 }
 
+static const char *
+skip_header(const char *str)
+{
+    if (try_match(&str, CRLF, 2))
+        return NULL;
+
+    str = strstr(str, CRLF);
+    if (str != NULL && try_match(&str, CRLF, 2))
+        return str;
+    else
+        return NULL;
+}
+
 int
 decode_request(/*Input*/const char *content, /*Output*/_request *request)
 {
@@ -205,6 +218,10 @@ decode_request(/*Input*/const char *content, /*Output*/_request *request)
             more = 1;
         }
         if ((progress = request_header(content, request)) != NULL) {
+            content = progress;
+            more = 1;
+        }
+        if (!more && (progress = skip_header(content)) != NULL) {
             content = progress;
             more = 1;
         }
