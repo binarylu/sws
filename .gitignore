@@ -54,3 +54,5 @@ tags
 
 # Debug files
 *.dSYM/
+
+sws
