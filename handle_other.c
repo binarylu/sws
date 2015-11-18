@@ -1,7 +1,7 @@
 #include "handle_other.h"
 
 int
-handle_other(/*Input*/_request *request, /*Output*/_response *response)
+handle_other(/*Input*/const _request *request, /*Output*/_response *response)
 {
     return 0;
 }

@@ -6,6 +6,6 @@
 /*
  * Needn't allocate/free memory.
  */
-int handle_other(/*Input*/_request *request, /*Output*/_response *response);
+int handle_other(/*Input*/const _request *request, /*Output*/_response *response);
 
 #endif /* end of include guard: __HANDLE_OTHER_H__ */
