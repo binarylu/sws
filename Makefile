@@ -4,7 +4,7 @@ OBJ = net.o \
 	  handle_static.o \
 	  handle_cgi.o \
 	  handle_other.o \
-	  request_op.o \
+	  public.o \
 	  HTTP_parser.o \
 	  sws.o
 

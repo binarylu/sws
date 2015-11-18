@@ -3,42 +3,51 @@
 
 #include <netdb.h>
 
-typedef struct __client_info {
-    int fd;
-    char *buf;
-    size_t pos;
-    struct sockaddr_storage addr;
-} _client_info;
+#include <stdlib.h>
+#include <assert.h>
+#include <string.h>
 
 typedef enum { NONE_METHOD, GET_METHOD, HEAD_METHOD /*, POST_METHOD*/ } _method;
 
-typedef struct __header {
+typedef struct __header_entry {
     char *key;
     char *value;
-    struct __header *next;
-} _header;
+    struct __header_entry *next;
+} _header_entry;
 
 typedef struct __request {
     _method method;
     char *uri;
     char *version;
-    _header *head_entry;
+    _header_entry *header_entry;
 } _request;
 
-/* request operations */
-/* initialize struct */
+typedef struct __response {
+    unsigned int code;
+    char *desc;
+    char *version;
+    _header_entry *header_entry;
+} _response;
+
+typedef struct __connection {
+    int fd;
+    char *buf;
+    size_t pos;
+    struct sockaddr_storage addr;
+    _request request;
+    _response response;
+} _connection;
+
 void request_init(_request *req);
-/* release memory and reset */
 void request_clear(_request *req);
 /* return 0 on success */
 int request_addfield(_request *req, const char *key,
         int keylen, const char *val, int vallen);
 
-typedef struct __response {
-    unsigned int code;
-    char *desc;
-    char version[9];
-    _header *head_entry;
-} _response;
+void response_init(_response *resp);
+void response_clear(_response *resp);
+/* return 0 on success */
+int response_addfield(_response *resp, const char *key,
+        int keylen, const char *val, int vallen);
 
 #endif /* end of include guard: __PUBLIC_H__ */

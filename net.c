@@ -1,13 +1,13 @@
 #include "net.h"
 
-#define SET_CLIENT(c, _fd, _addr) do { \
+#define SET_CONNECTION(c, _fd, _addr) do { \
     (c).fd = (_fd); \
     (c).buf = NULL; \
     (c).pos = 0; \
     (c).addr = (_addr); \
 } while(0)
 
-#define RESET_CLIENT(c) do { \
+#define RESET_CONNECTION(c) do { \
     (c).fd = -1; \
     (c).buf = NULL; \
     (c).pos = 0; \
@@ -91,7 +91,7 @@ network_loop(char *address, char *port)
     struct sockaddr_storage client_addr;
     socklen_t client_addrlen;
     fd_set fdset, rset;
-    _client_info client[FD_SETSIZE];
+    _connection connection[FD_SETSIZE];
     char ip[INET6_ADDRSTRLEN] = {0};
     int i, m, maxi = -1, handle_ret;
 
@@ -103,7 +103,7 @@ network_loop(char *address, char *port)
     }
 
     for (i = 0; i < FD_SETSIZE; ++i)
-        client[i].fd = -1;
+        connection[i].fd = -1;
 
     fd_max = listen_sock[0] > listen_sock[1] ? listen_sock[0] : listen_sock[1];
     FD_ZERO(&fdset);
@@ -127,8 +127,8 @@ network_loop(char *address, char *port)
                     perror("accept");
                 } else {
                     for (i = 0; i < FD_SETSIZE; ++i) {
-                        if (client[i].fd < 0) {
-                            SET_CLIENT(client[i], connfd, client_addr);
+                        if (connection[i].fd < 0) {
+                            SET_CONNECTION(connection[i], connfd, client_addr);
                             /*sockaddr2string((struct sockaddr *)&client_addr, ip);
                             printf("Get connection from %s.\n", ip);*/
                             break;
@@ -145,20 +145,20 @@ network_loop(char *address, char *port)
             }
         }
         for (i = 0; i <= maxi; ++i) {
-            if (client[i].fd < 0)
+            if (connection[i].fd < 0)
                 continue;
-            if (FD_ISSET(client[i].fd, &rset)) {
-                handle_ret = handle(&(client[i]));
+            if (FD_ISSET(connection[i].fd, &rset)) {
+                handle_ret = handle(&(connection[i]));
                 if (handle_ret == -1) {
                     perror("read");
-                    close(client[i].fd);
-                    RESET_CLIENT(client[i]);
+                    close(connection[i].fd);
+                    RESET_CONNECTION(connection[i]);
                 } else if (handle_ret == 0) {
                     sockaddr2string((struct sockaddr *)&client_addr, ip);
                     fprintf(stdout, "Connection with client %s is closed\n", ip);
-                    FD_CLR(client[i].fd, &fdset);
-                    close(client[i].fd);
-                    RESET_CLIENT(client[i]);
+                    FD_CLR(connection[i].fd, &fdset);
+                    close(connection[i].fd);
+                    RESET_CONNECTION(connection[i]);
                 }
             }
         }
