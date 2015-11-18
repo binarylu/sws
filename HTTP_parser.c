@@ -82,7 +82,7 @@ digit(const char *str, int count)
 }
 
 static const char *
-month(const char *str)
+_month(const char *str)
 {
     static const char * strmonth[] = {
         "Jan", "Feb", "Mar", "Apr", "May", "Jun",
@@ -97,7 +97,7 @@ month(const char *str)
 }
 
 static const char *
-wkday(const char *str)
+_wkday(const char *str)
 {
     static const char * strwk[] = {
         "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"
@@ -111,7 +111,7 @@ wkday(const char *str)
 }
 
 static const char *
-time(const char *str)
+_time(const char *str)
 {
     if ((str = digit(str, 2)) != NULL &&
             try_match(&str, ":", 1) &&
@@ -124,11 +124,11 @@ time(const char *str)
 }
 
 static const char *
-date1(const char *str)
+_date1(const char *str)
 {
     if ((str = digit(str, 2)) != NULL &&
             try_match(&str, SP_STR, 1) &&
-            (str = month(str)) != NULL &&
+            (str = _month(str)) != NULL &&
             try_match(&str, SP_STR, 1) &&
             (str = digit(str, 4)) != NULL)
         return str;
@@ -139,11 +139,11 @@ date1(const char *str)
 static const char *
 rfc1123_date(const char *str)
 {
-    if ((str = wkday(str)) != NULL &&
+    if ((str = _wkday(str)) != NULL &&
             try_match(&str, "," SP_STR, 2) &&
-            (str = date1(str)) != NULL &&
+            (str = _date1(str)) != NULL &&
             try_match(&str, SP_STR, 1) &&
-            (str = time(str)) != NULL &&
+            (str = _time(str)) != NULL &&
             try_match(&str, SP_STR "GMT", 4))
         return str;
     else
@@ -188,6 +188,19 @@ request_header(const char *str, _request *req)
         return NULL;
 }
 
+static const char *
+skip_header(const char *str)
+{
+    if (try_match(&str, CRLF, 2))
+        return NULL;
+
+    str = strstr(str, CRLF);
+    if (str != NULL && try_match(&str, CRLF, 2))
+        return str;
+    else
+        return NULL;
+}
+
 int
 decode_request(/*Input*/const char *content, /*Output*/_request *request)
 {
@@ -205,6 +218,10 @@ decode_request(/*Input*/const char *content, /*Output*/_request *request)
             more = 1;
         }
         if ((progress = request_header(content, request)) != NULL) {
+            content = progress;
+            more = 1;
+        }
+        if (!more && (progress = skip_header(content)) != NULL) {
             content = progress;
             more = 1;
         }
