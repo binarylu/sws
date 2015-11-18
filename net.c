@@ -1,5 +1,18 @@
 #include "net.h"
 
+#define SET_CLIENT(c, _fd, _addr) do { \
+    (c).fd = (_fd); \
+    (c).buf = NULL; \
+    (c).pos = 0; \
+    (c).addr = (_addr); \
+} while(0)
+
+#define RESET_CLIENT(c) do { \
+    (c).fd = -1; \
+    (c).buf = NULL; \
+    (c).pos = 0; \
+} while(0)
+
 static int init_net(char *address, char *port, int *sock);
 
 int
@@ -58,12 +71,15 @@ sockaddr2string(struct sockaddr *sa, char *address)
             perror("inetV4_ntop");
             return -1;
         }
-    } else {
+    } else if (sa->sa_family == AF_INET6) {
         server6 = (struct sockaddr_in6 *)sa;
         if (inet_ntop(sa->sa_family, &(server6->sin6_addr), address, INET6_ADDRSTRLEN) == NULL) {
             perror("inetV6_ntop");
             return -1;
         }
+    } else {
+        printf("family: %d\n", sa->sa_family);
+        return -1;
     }
     return 0;
 }
@@ -83,7 +99,7 @@ network_loop(char *address, char *port)
 
     if (init_net(address, port, listen_sock) < 0) {
         fprintf(stderr, "Fail to initial network!\n");
-        return;
+        exit(EXIT_FAILURE);
     }
 
     for (i = 0; i < FD_SETSIZE; ++i)
@@ -93,6 +109,10 @@ network_loop(char *address, char *port)
     FD_ZERO(&fdset);
     FD_SET(listen_sock[0], &fdset);
     FD_SET(listen_sock[1], &fdset);
+    if (init_handle() != 0) {
+        fprintf(stderr, "Fail to initialize handle!");
+        exit(EXIT_FAILURE);
+    }
     for (;;) {
         rset = fdset;
         if (select(fd_max + 1, &rset, NULL, NULL, NULL) < 0) {
@@ -108,8 +128,7 @@ network_loop(char *address, char *port)
                 } else {
                     for (i = 0; i < FD_SETSIZE; ++i) {
                         if (client[i].fd < 0) {
-                            client[i].fd = connfd;
-                            client[i].addr = client_addr;
+                            SET_CLIENT(client[i], connfd, client_addr);
                             /*sockaddr2string((struct sockaddr *)&client_addr, ip);
                             printf("Get connection from %s.\n", ip);*/
                             break;
@@ -132,13 +151,14 @@ network_loop(char *address, char *port)
                 handle_ret = handle(&(client[i]));
                 if (handle_ret == -1) {
                     perror("read");
-                    close(connfd);
+                    close(client[i].fd);
+                    RESET_CLIENT(client[i]);
                 } else if (handle_ret == 0) {
                     sockaddr2string((struct sockaddr *)&client_addr, ip);
                     fprintf(stdout, "Connection with client %s is closed\n", ip);
-                    FD_CLR(connfd, &fdset);
+                    FD_CLR(client[i].fd, &fdset);
                     close(client[i].fd);
-                    client[i].fd = -1;
+                    RESET_CLIENT(client[i]);
                 }
             }
         }

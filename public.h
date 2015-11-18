@@ -5,6 +5,8 @@
 
 typedef struct __client_info {
     int fd;
+    char *buf;
+    size_t pos;
     struct sockaddr_storage addr;
 } _client_info;
 

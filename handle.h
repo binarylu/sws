@@ -7,8 +7,10 @@
 
 #include "public.h"
 
-#define BUF_SIZE 4096
+#define BUF_SIZE 40960
 
+int init_handle();
 int handle(_client_info *client);
+void destroy_handle();
 
 #endif /* end of include guard: __HANDLE_H__ */

@@ -6,6 +6,7 @@
 
 #include "net.h"
 
+#define DEFAULT_IP   "0.0.0.0"
 #define DEFAULT_PORT "8080"
 
 int debug = 0;
@@ -16,7 +17,7 @@ int is_number(char *str);
 int main(int argc, char *argv[])
 {
     char *cgi_dir = NULL;
-    char *ip = NULL;
+    char *ip = DEFAULT_IP;
     char *logfile = NULL;
     char *port = DEFAULT_PORT;
     int opt;
