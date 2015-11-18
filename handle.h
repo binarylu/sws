@@ -6,6 +6,7 @@
 #include <stdio.h>
 
 #include "public.h"
+#include "HTTP_parser.h"
 
 #define BUF_SIZE 40960
 
