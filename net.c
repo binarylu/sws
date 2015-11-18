@@ -1,18 +1,5 @@
 #include "net.h"
 
-#define SET_CONNECTION(c, _fd, _addr) do { \
-    (c).fd = (_fd); \
-    (c).buf = NULL; \
-    (c).pos = 0; \
-    (c).addr = (_addr); \
-} while(0)
-
-#define RESET_CONNECTION(c) do { \
-    (c).fd = -1; \
-    (c).buf = NULL; \
-    (c).pos = 0; \
-} while(0)
-
 static int init_net(char *address, char *port, int *sock);
 
 int
@@ -82,6 +69,37 @@ sockaddr2string(struct sockaddr *sa, char *address)
         return -1;
     }
     return 0;
+}
+
+unsigned short int
+get_port(struct sockaddr *sa)
+{
+    struct sockaddr_in *server;
+    struct sockaddr_in6 *server6;
+    if (sa->sa_family == AF_INET) {
+        server = (struct sockaddr_in *)sa;
+        return server->sin_port;
+    } else if (sa->sa_family == AF_INET6) {
+        server6 = (struct sockaddr_in6 *)sa;
+        return server6->sin6_port;
+    } else {
+        printf("family: %d\n", sa->sa_family);
+        return -1;
+    }
+    return -1;
+}
+
+int
+validate_port(char *str)
+{
+    int i;
+    int len = strlen(str);
+    for (i = 0; i < len; ++i)
+        if (str[i] < '0' || str[i] > '9')
+            return 0;
+    if (atoi(str) > 65535)
+        return 0;
+    return 1;
 }
 
 void

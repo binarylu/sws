@@ -135,3 +135,64 @@ response_addfield(_response *resp, const char *key,
     return 0;
 }
 
+int
+init_log(const char *filename)
+{
+    if ((g_logfd = open(filename, O_WRONLY | O_APPEND | O_CREAT)) == -1) {
+        perror("Fail to open log file");
+        return -1;
+    }
+    return 0;
+}
+
+void
+close_log()
+{
+    close(g_logfd);
+}
+
+void
+get_year_mon_day(int* year, int* mon, int* day)
+{
+    time_t timep;
+    struct tm *p;
+
+    time(&timep);
+    p = localtime(&timep);
+    *year = p->tm_year + 1900;
+    *mon = p->tm_mon + 1;
+    *day = p->tm_mday;
+}
+
+void
+get_date_rfc1123(char *buf, size_t len)
+{
+      time_t timep;
+      struct tm *p;
+
+      time(&timep);
+      p = localtime(&timep);
+      strftime(buf, len, "%a, %d %b %Y %H GMT", p);
+}
+
+void
+get_date_rfc850(char *buf, size_t len)
+{
+      time_t timep;
+      struct tm *p;
+
+      time(&timep);
+      p = localtime(&timep);
+      strftime(buf, len, "%A, %d-%b-%y %H GMT", p);
+}
+
+void
+get_date_asctime(char *buf, size_t len)
+{
+      time_t timep;
+      struct tm *p;
+
+      time(&timep);
+      p = localtime(&timep);
+      strftime(buf, len, "%c", p);
+}

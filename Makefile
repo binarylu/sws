@@ -8,7 +8,8 @@ OBJ = net.o \
 	  HTTP_parser.o \
 	  sws.o
 
-CFLAGS = -g -Wall -pedantic-errors
+#CFLAGS = -g -Wall -pedantic-errors
+CFLAGS = -g -Wall
 LIB = -pthread
 
 $(BIN): $(OBJ)

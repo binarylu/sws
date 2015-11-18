@@ -9,10 +9,10 @@
 #define DEFAULT_IP   "0.0.0.0"
 #define DEFAULT_PORT "8080"
 
-int debug = 0;
+int g_debug = 0;
+int g_logfd = -1;
 
 void usage();
-int is_number(char *str);
 
 int main(int argc, char *argv[])
 {
@@ -27,7 +27,7 @@ int main(int argc, char *argv[])
                 cgi_dir = optarg;
                 break;
             case 'd':
-                debug = 1;
+                g_debug = 1;
                 break;
             case 'h':
                 usage();
@@ -40,7 +40,7 @@ int main(int argc, char *argv[])
                 logfile = optarg;
                 break;
             case 'p':
-                if (is_number(optarg))
+                if (validate_port(optarg))
                     port = optarg;
                 else {
                     fprintf(stderr, "Invalid port number\n");
@@ -53,11 +53,15 @@ int main(int argc, char *argv[])
                 exit(EXIT_FAILURE);
         }
     }
+    if (logfile != NULL)
+        init_log(logfile);
     printf("cgi_dir = %s\n", cgi_dir);
     printf("logfile = %s\n", logfile);
     printf("ip = %s\n", ip);
     printf("port = %s\n==========\n", port);
     network_loop(ip, port);
+    if (logfile != NULL)
+        close_log();
     return 0;
 }
 
@@ -65,17 +69,4 @@ void
 usage()
 {
     printf("sws [ -dh ] [ -c dir ] [ -i address ] [ -l file ] [ -p port ] dir\n");
-}
-
-int
-is_number(char *str)
-{
-    int i;
-    int len = strlen(str);
-    for (i = 0; i < len; ++i)
-        if (str[i] < '0' || str[i] > '9')
-            return 0;
-    if (atoi(str) > 65535)
-        return 0;
-    return 1;
 }

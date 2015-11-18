@@ -16,9 +16,24 @@
 #define MAX_LISTEN 5
 #define BUFFSIZE 128
 
-extern int sockaddr2string(struct sockaddr *sa, char *address);
+#define SET_CONNECTION(c, _fd, _addr) do { \
+    (c).fd = (_fd); \
+    (c).buf = NULL; \
+    (c).pos = 0; \
+    (c).addr = (_addr); \
+} while(0)
 
-extern void network_loop(char *address, char *port);
+#define RESET_CONNECTION(c) do { \
+    (c).fd = -1; \
+    (c).buf = NULL; \
+    (c).pos = 0; \
+} while(0)
+
+int sockaddr2string(struct sockaddr *sa, char *address);
+unsigned short int get_port(struct sockaddr *sa);
+int validate_port(char *str);
+
+void network_loop(char *address, char *port);
 
 
 #endif /* end of include guard: __NET_H__ */
