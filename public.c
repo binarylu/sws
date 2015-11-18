@@ -37,7 +37,7 @@ request_clear(_request *req)
 }
 
 /*
- * return 0 on success 
+ * return 0 on success
  */
 int
 request_addfield(_request *req, const char *key,
@@ -97,7 +97,7 @@ response_clear(_response *resp)
 }
 
 /*
- * return 0 on success 
+ * return 0 on success
  */
 int
 response_addfield(_response *resp, const char *key,
@@ -195,4 +195,52 @@ get_date_asctime(char *buf, size_t len)
       time(&timep);
       p = localtime(&timep);
       strftime(buf, len, "%c", p);
+}
+
+const char *
+seperate_string(const char *str, const char *delim, size_t *len, int idx)
+{
+    int i = 0;
+    const char *pre = str;
+    const char *cur = str;
+
+    if (str != NULL) {
+        cur = strstr(pre, delim);
+        for (i = 1; i <= idx && cur; ++i) {
+            pre = cur + strlen(delim);
+            cur = strstr(pre, delim);
+        }
+        if (cur != NULL) { /* There are more delims than idx */
+            *len = cur - pre;
+            return pre;
+        } else if (i == 0 || i > idx) { /* The section is the only one or the last one */
+            *len = strlen(pre);
+            return pre;
+        } else {  /* the idx is beyond the number of sections */
+            *len = 0;
+            return NULL;
+        }
+    }
+    return pre;
+}
+
+int
+validate_ipv4(const char *ip)
+{
+    int i, cnt = 0, sum;
+    const char *p;
+    size_t len;
+    while ((p = seperate_string(ip, ".", &len, cnt++)) != NULL) {
+        sum = 0;
+        for (i = 0; i < len; ++i) {
+            if (!isdigit(p[i]))
+                return 0;
+            sum = sum * 10 + p[i] - '0';
+        }
+        if (sum > 255)
+            return 0;
+    }
+    if (cnt > 5) /* The fifth try can know it is the end */
+        return 0;
+    return 1;
 }

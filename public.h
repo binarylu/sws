@@ -11,6 +11,7 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <string.h>
+#include <ctype.h>
 
 extern int g_debug;
 extern int g_logfd;
@@ -66,6 +67,9 @@ void get_date_rfc1123(char *buf, size_t len);
 void get_date_rfc850(char *buf, size_t len);
 void get_date_asctime(char *buf, size_t len);
 
+const char * seperate_string(const char *str, const char *delim,
+        size_t *len, int idx);
+int validate_ipv4(const char *ip);
 
 #define LOG(fmt, arg...) do { \
     if (g_debug == 1) \
