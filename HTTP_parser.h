@@ -6,7 +6,7 @@
 /*
  * Needn't allocate/free memory.
  */
-int decode_request(/*Input*/char *content, /*Output*/_request *request);
+int decode_request(/*Input*/const char *content, /*Output*/_request *request);
 int encode_response(/*Input*/_response *response, /*Output*/char *content);
 
 

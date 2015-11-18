@@ -4,6 +4,7 @@ OBJ = net.o \
 	  handle_static.o \
 	  handle_cgi.o \
 	  handle_other.o \
+	  request_op.o \
 	  HTTP_parser.o \
 	  sws.o
 
@@ -11,7 +12,7 @@ CFLAGS = -g -Wall -pedantic-errors
 LIB = -pthread
 
 $(BIN): $(OBJ)
-	$(CC) -o $(BIN) $^ $(LIB)
+	$(CC) -o $(BIN) $^ $(LIB) -lbsd
 
 %.o: %.c
 	$(CC) $(CFLAGS) -c -o $@ $<
