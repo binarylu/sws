@@ -218,7 +218,7 @@ decode_request(/*Input*/const char *content, /*Output*/_request *request)
 }
 
 int
-encode_response(/*Input*/_response *response, /*Output*/char *content)
+encode_response(/*Input*/const _response *response, /*Output*/char *content)
 {
     return 0;
 }
