@@ -61,13 +61,12 @@ int main(int argc, char *argv[])
     printf("logfile = %s\n", logfile);
     printf("ip = %s\n", ip);
     printf("port = %s\n==========\n", port);
-    exit(EXIT_FAILURE);
 
-    if (g_debug == 0)
+    /*if (g_debug == 0)
         if (daemon(0, 0) != 0) {
             perror("Fail to daemon!");
             exit(EXIT_FAILURE);
-        }
+        }*/
 
     if (logfile != NULL)
         init_log(logfile);
