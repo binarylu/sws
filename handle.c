@@ -18,8 +18,8 @@ handle(_connection *connection)
     struct sockaddr_storage *client_addr;
     char ip[INET6_ADDRSTRLEN];
     int fd, nread;
-    _request request;
-    _response response;
+    _request *request;
+    _response *response;
 
     _header_entry *p;
 
@@ -42,26 +42,32 @@ handle(_connection *connection)
             printf("Request from %s->\n%s\n", ip, connection->buf);
             printf("=============================\n\n");
 
-            request_init(&(connection->request));
-            response_init(&(connection->response));
+            request = &(connection->request);
+            response = &(connection->response);
 
-            decode_request(connection->buf, &request);
-            printf("%d %s %s\n", request.method, request.uri, request.version);
-            p = (connection->request).header_entry;
+            request_init(request);
+            response_init(response);
+
+            if (decode_request(connection->buf, request) != 0) {
+                perror("decode request error");
+                return -1;
+            }
+            printf("%d %s %s\n", request->method, request->uri, request->version);
+            p = request->header_entry;
             while (p) {
-                printf("%s => %s\n", p->key, p->value);
+                printf("%s =====>>>>>> %s\n", p->key, p->value);
                 p = p->next;
             }
 
 
-            handle_static(&(connection->request), &(connection->response));
-            handle_cgi(&(connection->request), &(connection->response));
-            handle_other(&(connection->request), &(connection->response));
+            handle_static(request, response);
+            handle_cgi(request, response);
+            handle_other(request, response);
 
-            encode_response(&response, connection->buf);
+            encode_response(response, connection->buf);
 
-            request_clear(&(connection->request));
-            response_clear(&(connection->response));
+            request_clear(request);
+            response_clear(response);
 
             printf("=============================\n\n");
             printf("Response to %s->\n%s\n", ip, connection->buf);

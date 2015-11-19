@@ -11,7 +11,7 @@
 #include "handle_cgi.h"
 #include "handle_other.h"
 
-#define BUF_SIZE 40960
+#define BUFFSIZE 40960
 
 int init_handle();
 int handle(_connection *connection);

@@ -14,7 +14,6 @@
 #include "handle.h"
 
 #define MAX_LISTEN 5
-#define BUFFSIZE 128
 
 #define SET_CONNECTION(c, _fd, _addr) do { \
     (c).fd = (_fd); \
