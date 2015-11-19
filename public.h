@@ -4,8 +4,10 @@
 #include <netdb.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <sys/stat.h>
 #include <errno.h>
 #include <time.h>
+#include <limits.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -14,7 +16,9 @@
 #include <ctype.h>
 
 extern int g_debug;
-extern int g_logfd;
+extern FILE *g_log;
+extern const char *g_dir;
+extern const char *g_dir_cgi;
 
 typedef enum { NONE_METHOD, GET_METHOD, HEAD_METHOD /*, POST_METHOD*/ } _method;
 
@@ -71,13 +75,14 @@ const char * seperate_string(const char *str, const char *delim,
         size_t *len, int idx);
 int validate_ipv4(const char *ip);
 
+int validate_path(const char *path);
+int validate_path_security(const char *path);
+
 #define LOG(fmt, arg...) do { \
     if (g_debug == 1) \
         fprintf(stdout, fmt, ##arg); \
-    else if (g_logfd != -1) { \
-        char msg[128]; \
-        snprinf(msg, 128, fmt, ##arg); \
-        write(g_fd_log, msg, 128); \
+    else if (g_log != NULL) { \
+        fprintf(g_log, fmt, ##arg); \
     } \
 } while(0)
 
