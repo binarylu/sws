@@ -177,6 +177,10 @@ network_loop(char *address, char *port)
                     FD_CLR(connection[i].fd, &fdset);
                     close(connection[i].fd);
                     RESET_CONNECTION(connection[i]);
+                } else {
+                    FD_CLR(connection[i].fd, &fdset);
+                    close(connection[i].fd);
+                    RESET_CONNECTION(connection[i]);
                 }
             }
         }

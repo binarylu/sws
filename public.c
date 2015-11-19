@@ -139,7 +139,7 @@ response_addfield(_response *resp, const char *key,
 int
 init_log(const char *filename)
 {
-    if ((g_logfd = open(filename, O_WRONLY | O_APPEND | O_CREAT)) == -1) {
+    if ((g_log = fopen(filename, "a")) == NULL) {
         perror("Fail to open log file");
         return -1;
     }
@@ -149,7 +149,7 @@ init_log(const char *filename)
 void
 close_log()
 {
-    close(g_logfd);
+    fclose(g_log);
 }
 
 void
@@ -244,4 +244,50 @@ validate_ipv4(const char *ip)
     if (cnt > 5) /* The fifth try can know it is the end */
         return 0;
     return 1;
+}
+
+int
+validate_path(const char *path)
+{
+    struct stat st;
+    return stat(path, &st) == 0 && S_ISDIR(st.st_mode);
+}
+
+int
+validate_path_security(const char *path)
+{
+    int ret;
+    char *real_path;
+    char *real_dir[2];
+    int i, j;
+    size_t len_path, len_dir;
+
+    if((real_path = realpath(path, NULL)) == NULL)
+        return 0;
+    len_path = strlen(real_path);
+
+    real_dir[0] = realpath(g_dir, NULL);
+    assert(real_dir[0]);
+    real_dir[1] = realpath(g_dir_cgi, NULL);
+    assert(real_dir[1]);
+
+    ret = 0;
+    for (i = 0; i < 2; ++i) {
+        len_dir = strlen(real_dir[i]);
+        if (len_path < len_dir)
+            continue;
+        for (j = 0; j < len_dir; ++j) {
+            if (real_dir[i][j] != real_path[j])
+                break;
+        }
+        if (j == len_dir) {
+            ret = 1;
+            break;
+        }
+    }
+
+    free(real_path);
+    free(real_dir[0]);
+    free(real_dir[1]);
+    return ret;
 }
