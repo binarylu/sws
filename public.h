@@ -21,6 +21,7 @@ extern const char *g_dir;
 extern const char *g_dir_cgi;
 
 typedef enum { NONE_METHOD, GET_METHOD, HEAD_METHOD /*, POST_METHOD*/ } _method;
+typedef enum {REQ_CGI, REQ_STATIC, REQ_OTHER} _request_type;
 
 typedef struct __header_entry {
     char *key;
@@ -40,6 +41,7 @@ typedef struct __response {
     char *desc;
     char *version;
     _header_entry *header_entry;
+    char *body;
 } _response;
 
 typedef struct __connection {
@@ -71,12 +73,12 @@ void get_date_rfc1123(char *buf, size_t len);
 void get_date_rfc850(char *buf, size_t len);
 void get_date_asctime(char *buf, size_t len);
 
-const char * seperate_string(const char *str, const char *delim,
+const char *seperate_string(const char *str, const char *delim,
         size_t *len, int idx);
-int validate_ipv4(const char *ip);
-
-int validate_path(const char *path);
-int validate_path_security(const char *path);
+/*
+ * Caller is responsible to free the return memory
+ */
+char *get_absolute_path(const char *path, _request_type req_type);
 
 #define LOG(fmt, arg...) do { \
     if (g_debug == 1) \

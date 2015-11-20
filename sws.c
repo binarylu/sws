@@ -39,22 +39,23 @@ int main(int argc, char *argv[])
     argc -= optind;
     argv += optind;
     if (argc == 0) {
-        fprintf(stderr, "Please provide dir!");
+        fprintf(stderr, "Please provide dir!\n");
         exit(EXIT_FAILURE);
     }
     g_dir = argv[0];
     if (!validate_path(g_dir)) {
-        fprintf(stderr, "%s is not a validated path!", g_dir);
+        fprintf(stderr, "%s is not a validated dir!\n", g_dir);
         exit(EXIT_FAILURE);
     }
-    if (!validate_path(g_dir_cgi)) {
-        fprintf(stderr, "%s is not a validated path!", g_dir_cgi);
+    if (g_dir_cgi != NULL && !validate_path(g_dir_cgi)) {
+        fprintf(stderr, "%s is not a validated cgi dir!\n", g_dir_cgi);
         exit(EXIT_FAILURE);
     }
     if (!validate_port(port)) {
         fprintf(stderr, "Invalid port number\n");
         exit(EXIT_FAILURE);
     }
+    /*printf("res: %d\n\n", validate_path_security(argv[1], REQ_STATIC));*/
 
     printf("dir = %s\n", g_dir);
     printf("cgi_dir = %s\n", g_dir_cgi);
