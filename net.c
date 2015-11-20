@@ -54,7 +54,7 @@ sockaddr2string(struct sockaddr *sa, char *address)
     struct sockaddr_in6 *server6;
     if (sa->sa_family == AF_INET) {
         server = (struct sockaddr_in *)sa;
-        if (inet_ntop(sa->sa_family, &(server->sin_addr), address, INET6_ADDRSTRLEN) == NULL) {
+        if (inet_ntop(sa->sa_family, &(server->sin_addr), address, INET_ADDRSTRLEN) == NULL) {
             perror("inetV4_ntop");
             return -1;
         }
@@ -167,7 +167,7 @@ network_loop(char *address, char *port)
                 continue;
             if (FD_ISSET(connection[i].fd, &rset)) {
                 handle_ret = handle(&(connection[i]));
-                if (handle_ret == -1) {
+                if (handle_ret < 0) {
                     perror("read");
                     close(connection[i].fd);
                     RESET_CONNECTION(connection[i]);

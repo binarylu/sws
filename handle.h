@@ -17,4 +17,8 @@ int init_handle();
 int handle(_connection *connection);
 void destroy_handle();
 
+int validate_ipv4(const char *ip);
+int validate_path(const char *path);
+int validate_path_security(const char *path, _request_type req_type);
+
 #endif /* end of include guard: __HANDLE_H__ */
