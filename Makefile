@@ -10,10 +10,10 @@ OBJ = net.o \
 
 #CFLAGS = -g -Wall -pedantic-errors
 CFLAGS = -g -Wall
-LIB = -pthread
+#LIB = -pthread
 
 $(BIN): $(OBJ)
-	$(CC) -o $(BIN) $^ $(LIB) -lbsd
+	$(CC) -o $(BIN) $^ $(LIB)
 
 %.o: %.c
 	$(CC) $(CFLAGS) -c -o $@ $<

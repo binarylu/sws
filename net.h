@@ -31,6 +31,7 @@
 int sockaddr2string(struct sockaddr *sa, char *address);
 unsigned short int get_port(struct sockaddr *sa);
 int validate_port(char *str);
+int validate_ipv4(const char *ip);
 
 void network_loop(char *address, char *port);
 

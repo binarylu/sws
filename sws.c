@@ -9,7 +9,7 @@
 #define DEFAULT_IP   "0.0.0.0"
 #define DEFAULT_PORT "8080"
 
-int g_debug = 0;
+int g_debug = 1;
 FILE *g_log = NULL;
 const char *g_dir = NULL;
 const char *g_dir_cgi = NULL;
@@ -63,11 +63,11 @@ int main(int argc, char *argv[])
     printf("ip = %s\n", ip);
     printf("port = %s\n==========\n", port);
 
-    /*if (g_debug == 0)
+    if (g_debug == 0)
         if (daemon(0, 0) != 0) {
             perror("Fail to daemon!");
             exit(EXIT_FAILURE);
-        }*/
+        }
 
     if (logfile != NULL)
         init_log(logfile);

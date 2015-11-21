@@ -1,5 +1,4 @@
 #include "public.h"
-#include <bsd/string.h>
 
 static void
 free_headers(_header_entry *p)
@@ -61,8 +60,10 @@ request_addfield(_request *req, const char *key,
         return -1;
     }
 
-    assert(strlcpy(node->key, key, keylen + 1));
-    assert(strlcpy(node->value, val, vallen + 1));
+    assert(strncpy(node->key, key, keylen));
+    assert(strncpy(node->value, val, vallen));
+    node->key[keylen] = '\0';
+    node->value[vallen] = '\0';
 
     last = req->header_entry;
     if (last == NULL)
@@ -227,26 +228,85 @@ seperate_string(const char *str, const char *delim, size_t *len, int idx)
     return pre;
 }
 
+int
+validate_path(const char *path)
+{
+    struct stat st;
+    return stat(path, &st) == 0 && S_ISDIR(st.st_mode);
+}
+
+int
+validate_path_security(const char *path, _request_type req_type)
+{
+    int ret = 0;
+    const char *server_dir = NULL;
+    char *real_path = NULL;
+    char *real_server_dir = NULL;
+    size_t len_path, len_dir;
+
+    switch (req_type) {
+        case REQ_CGI: server_dir = g_dir_cgi; break;
+        case REQ_STATIC: server_dir = g_dir; break;
+        default: return 0;
+    }
+    if (server_dir == NULL)
+        return 0;
+
+    do {
+        real_path = realpath(path, NULL);
+        if (real_path == NULL)
+            break;
+        real_server_dir = realpath(path, NULL);
+        if (real_server_dir == NULL)
+            break;
+
+        /*printf("path: %s\ndir: %s\n", real_path, real_server_dir);*/
+
+        len_path = strlen(real_path);
+        len_dir = strlen(real_server_dir);
+
+        if (len_path < len_dir ||
+                strncmp(real_path, real_server_dir, len_dir) != 0)
+            break;
+
+        ret = 1;
+    } while(0);
+
+    if (real_path)
+        free(real_path);
+    if (real_server_dir)
+        free(real_server_dir);
+    return ret;
+}
+
 char *
 get_absolute_path(const char *path, _request_type req_type)
 {
-    char *abs_path;
-    const char *dir;
-
-    switch (req_type) {
-        case REQ_CGI: dir = g_dir_cgi; path += strlen("/cgi-bin"); break;
-        case REQ_STATIC: dir = g_dir; break;
-        default: return NULL;
-    }
+    char *abs_path = NULL;
+    const char *username = NULL;
+    size_t username_len;
 
     abs_path = (char *)malloc(sizeof(char) * PATH_MAX);
     if (abs_path == NULL)
-        return abs_path;
+        return NULL;
 
-    strncpy(abs_path, dir, PATH_MAX);
-    abs_path[strlen(dir)] = '\0';
-    strncat(abs_path, path, PATH_MAX - strlen(dir));
-    abs_path[PATH_MAX - 1] = '\0';
+    if (req_type == REQ_CGI) {
+        path += strlen("/cgi-bin");
+        snprintf(abs_path, PATH_MAX, "%s%s", g_dir_cgi, path);
+    } else if (req_type == REQ_STATIC) {
+        username = seperate_string(path, "/", &username_len, 1);
+        --username_len;
+        if (username[0] == '~') {
+            path += username_len + 2;
+            snprintf(abs_path, 6 + username_len + 1, "/home/%s", username + 1);
+            snprintf(abs_path + 6 + username_len,
+                    PATH_MAX - (6 + username_len), "/sws%s", path);
+        } else {
+            snprintf(abs_path, PATH_MAX, "%s%s", g_dir, path);
+        }
+    } else {
+        return NULL;
+    }
 
-    return realpath(abs_path, NULL);
+    return abs_path;
 }

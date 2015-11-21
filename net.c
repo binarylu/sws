@@ -90,6 +90,27 @@ get_port(struct sockaddr *sa)
 }
 
 int
+validate_ipv4(const char *ip)
+{
+    int i, cnt = 0, sum;
+    const char *p;
+    size_t len;
+    while ((p = seperate_string(ip, ".", &len, cnt++)) != NULL) {
+        sum = 0;
+        for (i = 0; i < len; ++i) {
+            if (!isdigit(p[i]))
+                return 0;
+            sum = sum * 10 + p[i] - '0';
+        }
+        if (sum > 255)
+            return 0;
+    }
+    if (cnt > 5) /* The fifth try can know it is the end */
+        return 0;
+    return 1;
+}
+
+int
 validate_port(char *str)
 {
     int i;

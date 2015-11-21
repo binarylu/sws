@@ -97,80 +97,10 @@ handle(_connection *connection)
     return 1;
 }
 
-/* check the path security */
 static _request_type
 get_request_type(_request *request)
 {
     if (g_dir_cgi != NULL && strncmp(request->uri, "/cgi-bin", 8) == 0)
         return REQ_CGI;
     return REQ_STATIC;
-}
-
-int
-validate_ipv4(const char *ip)
-{
-    int i, cnt = 0, sum;
-    const char *p;
-    size_t len;
-    while ((p = seperate_string(ip, ".", &len, cnt++)) != NULL) {
-        sum = 0;
-        for (i = 0; i < len; ++i) {
-            if (!isdigit(p[i]))
-                return 0;
-            sum = sum * 10 + p[i] - '0';
-        }
-        if (sum > 255)
-            return 0;
-    }
-    if (cnt > 5) /* The fifth try can know it is the end */
-        return 0;
-    return 1;
-}
-
-int
-validate_path(const char *path)
-{
-    struct stat st;
-    return stat(path, &st) == 0 && S_ISDIR(st.st_mode);
-}
-
-int
-validate_path_security(const char *path, _request_type req_type)
-{
-    int ret = 0;
-    char *real_path;
-    const char *server_dir;
-    char *real_server_dir;
-    size_t len_path, len_dir;
-
-    switch (req_type) {
-        case REQ_CGI: server_dir = g_dir_cgi; break;
-        case REQ_STATIC: server_dir = g_dir; break;
-        default: return 0;
-    }
-    if (server_dir == NULL)
-        return 0;
-
-    do {
-        if((real_path = realpath(path, NULL)) == NULL ||
-                (real_server_dir = realpath(g_dir, NULL)) == NULL)
-            break;
-
-        /*printf("path: %s\ndir: %s\n", real_path, real_server_dir);*/
-
-        len_path = strlen(real_path);
-        len_dir = strlen(real_server_dir);
-
-        if (len_path < len_dir ||
-                strncmp(real_path, real_server_dir, len_dir) != 0)
-            break;
-
-        ret = 1;
-    } while(0);
-
-    if (real_path)
-        free(real_path);
-    if (real_server_dir)
-        free(real_server_dir);
-    return ret;
 }
