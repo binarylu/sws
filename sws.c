@@ -6,7 +6,6 @@
 
 #include "net.h"
 
-#define DEFAULT_IP   "0.0.0.0"
 #define DEFAULT_PORT "8080"
 
 int g_debug = 1;
@@ -18,7 +17,7 @@ void usage();
 
 int main(int argc, char *argv[])
 {
-    char *ip = DEFAULT_IP;
+    char *ip = NULL;
     char *logfile = NULL;
     char *port = DEFAULT_PORT;
     int opt;

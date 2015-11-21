@@ -1,28 +1,43 @@
 #include "net.h"
 
-static int init_net(char *address, char *port, int *sock);
-
-int
-init_net(char *address, char *port, int *sock)
+static int
+init_net(const char *address, const char *port, int *sock, int *sock_num)
 {
     int s, v, i;
-    struct addrinfo hints, *result, *rp;
+    struct addrinfo hints, *result = NULL, *rp = NULL;
+
+#if 1
+    char ip[INET6_ADDRSTRLEN] = {0};
+    unsigned short int p;
+#endif
 
     memset(&hints, 0, sizeof(struct addrinfo));
 	hints.ai_family = AF_UNSPEC;
 	hints.ai_socktype = SOCK_STREAM;
-	hints.ai_flags = AI_PASSIVE | AI_NUMERICHOST;
+	hints.ai_flags = AI_PASSIVE;
 	hints.ai_protocol = IPPROTO_IP;
 	/*hints.ai_canonname = NULL;
 	hints.ai_addr = (struct sockaddr *)&server;
 	hints.ai_next = NULL;*/
 
     if ((s = getaddrinfo(address, port, &hints, &result)) != 0) {
-        fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(s));
+        fprintf(stderr, "Invalid address: %s.(%s)\n", address, gai_strerror(s));
         exit(EXIT_FAILURE);
     }
 
-    for (rp = result, i = 0; rp != NULL && i < 2; rp = rp->ai_next, ++i) {
+    rp = result;
+    *sock_num = 0;
+    while (rp) {
+        ++(*sock_num);
+        rp = rp->ai_next;
+    }
+#if 1
+    printf("sock_num: %d\n", *sock_num);
+#endif
+    sock = (int *)malloc(sizeof(int) * (*sock_num));
+    assert(sock);
+
+    for (rp = result, i = 0; rp != NULL; rp = rp->ai_next) {
         sock[i] = socket(rp->ai_family, rp->ai_socktype, rp->ai_protocol);
         if (sock[i] == -1) {
             perror("socket");
@@ -31,112 +46,57 @@ init_net(char *address, char *port, int *sock)
         v = 1;
         if (setsockopt(sock[i], SOL_SOCKET, SO_REUSEADDR, &v, sizeof(v)) < 0) {
             perror("setsockopt");
+            freeaddrinfo(result);
             return -1;
         }
         if (bind(sock[i], rp->ai_addr, rp->ai_addrlen) < 0) {
             perror("socket");
+            freeaddrinfo(result);
             return -1;
         }
         if (listen(sock[i], MAX_LISTEN) < 0) {
             perror("listen");
+            freeaddrinfo(result);
             return -1;
         }
+
+#if 1
+        sockaddr2string((struct sockaddr *)rp->ai_addr, ip);
+        p = get_port((struct sockaddr *)rp->ai_addr);
+		if (((struct sockaddr *)rp->ai_addr)->sa_family == AF_INET)
+			printf("Listen on: ipv4: %s, port: %d\n", ip, p);
+        else if (((struct sockaddr *)rp->ai_addr)->sa_family == AF_INET)
+			printf("Listen on: ipv6: %s, port: %d\n", ip, p);
+        else
+            printf("Listen on: unknown\n");
+#endif
     }
     freeaddrinfo(result);
 
     return 0;
 }
 
-int
-sockaddr2string(struct sockaddr *sa, char *address)
-{
-    struct sockaddr_in *server;
-    struct sockaddr_in6 *server6;
-    if (sa->sa_family == AF_INET) {
-        server = (struct sockaddr_in *)sa;
-        if (inet_ntop(sa->sa_family, &(server->sin_addr), address, INET_ADDRSTRLEN) == NULL) {
-            perror("inetV4_ntop");
-            return -1;
-        }
-    } else if (sa->sa_family == AF_INET6) {
-        server6 = (struct sockaddr_in6 *)sa;
-        if (inet_ntop(sa->sa_family, &(server6->sin6_addr), address, INET6_ADDRSTRLEN) == NULL) {
-            perror("inetV6_ntop");
-            return -1;
-        }
-    } else {
-        printf("family: %d\n", sa->sa_family);
-        return -1;
-    }
-    return 0;
-}
-
-unsigned short int
-get_port(struct sockaddr *sa)
-{
-    struct sockaddr_in *server;
-    struct sockaddr_in6 *server6;
-    if (sa->sa_family == AF_INET) {
-        server = (struct sockaddr_in *)sa;
-        return server->sin_port;
-    } else if (sa->sa_family == AF_INET6) {
-        server6 = (struct sockaddr_in6 *)sa;
-        return server6->sin6_port;
-    } else {
-        printf("family: %d\n", sa->sa_family);
-        return -1;
-    }
-    return -1;
-}
-
-int
-validate_ipv4(const char *ip)
-{
-    int i, cnt = 0, sum;
-    const char *p;
-    size_t len;
-    while ((p = seperate_string(ip, ".", &len, cnt++)) != NULL) {
-        sum = 0;
-        for (i = 0; i < len; ++i) {
-            if (!isdigit(p[i]))
-                return 0;
-            sum = sum * 10 + p[i] - '0';
-        }
-        if (sum > 255)
-            return 0;
-    }
-    if (cnt > 5) /* The fifth try can know it is the end */
-        return 0;
-    return 1;
-}
-
-int
-validate_port(char *str)
-{
-    int i;
-    int len = strlen(str);
-    for (i = 0; i < len; ++i)
-        if (str[i] < '0' || str[i] > '9')
-            return 0;
-    if (atoi(str) > 65535)
-        return 0;
-    return 1;
-}
-
 void
 network_loop(char *address, char *port)
 {
-    int listen_sock[2], connfd, fd_max = -1;
+    int *listen_sock = NULL;
+    int sock_num;
+    int connfd;
+
     struct sockaddr_storage client_addr;
     socklen_t client_addrlen;
+
+    int fd_max = -1, maxi = -1;
     fd_set fdset, rset;
     _connection connection[FD_SETSIZE];
+
+    int i, m, handle_ret;
+
+#if 1
     char ip[INET6_ADDRSTRLEN] = {0};
-    int i, m, maxi = -1, handle_ret;
+#endif
 
-    client_addrlen = sizeof(struct sockaddr_in);
-
-    if (init_net(address, port, listen_sock) < 0) {
+    if (init_net(address, port, listen_sock, &sock_num) < 0) {
         fprintf(stderr, "Fail to initial network!\n");
         exit(EXIT_FAILURE);
     }
@@ -144,21 +104,26 @@ network_loop(char *address, char *port)
     for (i = 0; i < FD_SETSIZE; ++i)
         connection[i].fd = -1;
 
-    fd_max = listen_sock[0] > listen_sock[1] ? listen_sock[0] : listen_sock[1];
+    for (i = 0; i < sock_num; ++i)
+        if (fd_max < listen_sock[i])
+            fd_max = listen_sock[i];
+
     FD_ZERO(&fdset);
     FD_SET(listen_sock[0], &fdset);
     FD_SET(listen_sock[1], &fdset);
+
     if (init_handle() != 0) {
         fprintf(stderr, "Fail to initialize handle!");
         exit(EXIT_FAILURE);
     }
+
     for (;;) {
         rset = fdset;
         if (select(fd_max + 1, &rset, NULL, NULL, NULL) < 0) {
             perror("select");
             exit(EXIT_FAILURE);
         }
-        for (m = 0; m < 2; ++m) {
+        for (m = 0; m < sock_num; ++m) {
             if (FD_ISSET(listen_sock[m], &rset)) {
                 client_addrlen = sizeof(client_addr);
                 memset(&client_addr, 0, client_addrlen);
@@ -206,6 +171,88 @@ network_loop(char *address, char *port)
             }
         }
     }
-    close(listen_sock[0]);
-    close(listen_sock[1]);
+
+    for (i = 0; i < sock_num; ++i)
+        close(listen_sock[i]);
+
+    destroy_handle();
+}
+
+int
+sockaddr2string(struct sockaddr *sa, char *address)
+{
+    struct sockaddr_in *server;
+    struct sockaddr_in6 *server6;
+    if (sa->sa_family == AF_INET) {
+        server = (struct sockaddr_in *)sa;
+        if (inet_ntop(sa->sa_family, &(server->sin_addr), address, INET_ADDRSTRLEN) == NULL) {
+            perror("inetV4_ntop");
+            return -1;
+        }
+    } else if (sa->sa_family == AF_INET6) {
+        server6 = (struct sockaddr_in6 *)sa;
+        if (inet_ntop(sa->sa_family, &(server6->sin6_addr), address, INET6_ADDRSTRLEN) == NULL) {
+            perror("inetV6_ntop");
+            return -1;
+        }
+    } else {
+        printf("family: %d\n", sa->sa_family);
+        return -1;
+    }
+    return 0;
+}
+
+unsigned short int
+get_port(struct sockaddr *sa)
+{
+    struct sockaddr_in *server;
+    struct sockaddr_in6 *server6;
+    if (sa->sa_family == AF_INET) {
+        server = (struct sockaddr_in *)sa;
+        return ntohs(server->sin_port);
+    } else if (sa->sa_family == AF_INET6) {
+        server6 = (struct sockaddr_in6 *)sa;
+        return ntohs(server6->sin6_port);
+    } else {
+        printf("family: %d\n", sa->sa_family);
+        return -1;
+    }
+    return -1;
+}
+
+/*
+ * (deprecated) Use getaddrinfo to verify
+ */
+int
+validate_ipv4(const char *ip)
+{
+    int i, cnt = 0, sum;
+    const char *p;
+    size_t len;
+    while ((p = seperate_string(ip, ".", &len, cnt++)) != NULL) {
+        sum = 0;
+        for (i = 0; i < len; ++i) {
+            if (!isdigit(p[i]))
+                return 0;
+            sum = sum * 10 + p[i] - '0';
+        }
+        if (sum > 255)
+            return 0;
+    }
+    if (cnt > 5) /* The fifth try can know it is the end */
+        return 0;
+    return 1;
+}
+
+int
+validate_port(char *str)
+{
+    int i;
+    int len = strlen(str);
+    for (i = 0; i < len; ++i)
+        if (str[i] < '0' || str[i] > '9')
+            return 0;
+    if (atoi(str) > 65535)
+        return 0;
+    return 1;
 }
