@@ -21,7 +21,7 @@ extern const char *g_dir;
 extern const char *g_dir_cgi;
 
 typedef enum { NONE_METHOD, GET_METHOD, HEAD_METHOD /*, POST_METHOD*/ } _method;
-typedef enum {REQ_CGI, REQ_STATIC, REQ_OTHER} _request_type;
+typedef enum { REQ_CGI, REQ_STATIC, REQ_OTHER } _request_type;
 
 typedef struct __header_entry {
     char *key;
@@ -48,9 +48,9 @@ typedef struct __connection {
     int fd;
     char *buf;
     size_t pos;
-    struct sockaddr_storage addr;
-    _request request;
-    _response response;
+    struct sockaddr_storage *addr;
+    _request *request;
+    _response *response;
 } _connection;
 
 void request_init(_request *req);

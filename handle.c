@@ -17,7 +17,6 @@ destroy_handle()
 int
 handle(_connection *connection)
 {
-    struct sockaddr_storage *client_addr;
     char ip[INET6_ADDRSTRLEN];
     char request_time[64];
     int nread;
@@ -43,14 +42,15 @@ handle(_connection *connection)
         connection->pos += nread;
         if (strncmp(connection->buf + strlen(connection->buf) - 2, "\r\n", 2) == 0) {
             get_date_rfc1123(request_time, sizeof(request_time));
-            client_addr = &(connection->addr);
-            sockaddr2string((struct sockaddr *)client_addr, ip);
+            sockaddr2string((struct sockaddr *)(connection->addr), ip);
 
             printf("Request from %s->\n%s\n", ip, connection->buf);
             printf("=============================\n\n");
 
-            request_init(request = &(connection->request));
-            response_init(response = &(connection->response));
+            request = connection->request;
+            response = connection->response;
+            request_init(request);
+            response_init(response);
 
             if (decode_request(connection->buf, request) != 0) {
                 perror("decode request error");

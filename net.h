@@ -19,7 +19,7 @@
     (c).fd = (_fd); \
     (c).buf = NULL; \
     (c).pos = 0; \
-    (c).addr = (_addr); \
+    memcpy(c.addr, &(_addr), sizeof(_addr)); \
 } while(0)
 
 #define RESET_CONNECTION(c) do { \
