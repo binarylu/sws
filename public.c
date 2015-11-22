@@ -84,6 +84,7 @@ response_init(_response *resp)
     resp->desc = NULL;
     resp->version = NULL;
     resp->header_entry = NULL;
+    resp->body = NULL;
 }
 
 void
