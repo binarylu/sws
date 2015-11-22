@@ -82,12 +82,12 @@ handle(_connection *connection)
             printf("=============================\n\n");
             printf("Response to %s->\n%s\n", ip, connection->buf);
 
-            LOG("%s %s %s %s %s %u %ld\n", ip,
+            /*LOG("%s %s %s %s %s %u %ld\n", ip,
                     request_time,
                     request->method == GET_METHOD ? "GET" :
                     (request->method == HEAD_METHOD ? "HEAD" : "NONE"),
                     request->uri, request->version,
-                    response->code, strlen(response->body));
+                    response->code, strlen(response->body));*/
 
             request_clear(request);
             response_clear(response);

@@ -28,6 +28,9 @@
     (c).pos = 0; \
 } while(0)
 
+/*
+ * Memory should be allocated before calling
+ */
 int sockaddr2string(struct sockaddr *sa, char *address);
 unsigned short int get_port(struct sockaddr *sa);
 int validate_port(char *str);

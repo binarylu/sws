@@ -36,7 +36,8 @@ try_capture(const char **pstr, char c)
     if ((loc = strchr(*pstr, c)) != NULL) {
         count = loc - *pstr;
         if ((buf = (char *)malloc(count + 1)) != NULL) {
-            strlcpy(buf, *pstr, count + 1);
+            strncpy(buf, *pstr, count);
+            buf[count] = '\0';
             *pstr = loc;
         } else
             perror("can't alllocate memory");

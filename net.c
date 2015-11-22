@@ -1,9 +1,11 @@
 #include "net.h"
 
 static int
-init_net(const char *address, const char *port, int *sock, int *sock_num)
+init_net(const char *address, const char *port, int **listen_sock)
 {
     int s, v, i;
+    int *socks, sock;
+    int sock_num = 0;
     struct addrinfo hints, *result = NULL, *rp = NULL;
 
 #if 1
@@ -26,54 +28,60 @@ init_net(const char *address, const char *port, int *sock, int *sock_num)
     }
 
     rp = result;
-    *sock_num = 0;
     while (rp) {
-        ++(*sock_num);
+        ++sock_num;
         rp = rp->ai_next;
     }
 #if 1
-    printf("sock_num: %d\n", *sock_num);
+    printf("sock_num: %d\n", sock_num);
 #endif
-    sock = (int *)malloc(sizeof(int) * (*sock_num));
-    assert(sock);
+    *listen_sock = (int *)malloc(sizeof(int) * sock_num);
+    assert(*listen_sock);
+
+    socks = *listen_sock;
 
     for (rp = result, i = 0; rp != NULL; rp = rp->ai_next) {
-        sock[i] = socket(rp->ai_family, rp->ai_socktype, rp->ai_protocol);
-        if (sock[i] == -1) {
-            perror("socket");
+        if (rp->ai_family != AF_INET && rp->ai_family != AF_INET6) {
+            --sock_num;
             continue;
         }
-        v = 1;
-        if (setsockopt(sock[i], SOL_SOCKET, SO_REUSEADDR, &v, sizeof(v)) < 0) {
-            perror("setsockopt");
-            freeaddrinfo(result);
-            return -1;
-        }
-        if (bind(sock[i], rp->ai_addr, rp->ai_addrlen) < 0) {
-            perror("socket");
-            freeaddrinfo(result);
-            return -1;
-        }
-        if (listen(sock[i], MAX_LISTEN) < 0) {
-            perror("listen");
-            freeaddrinfo(result);
-            return -1;
-        }
-
 #if 1
         sockaddr2string((struct sockaddr *)rp->ai_addr, ip);
         p = get_port((struct sockaddr *)rp->ai_addr);
-		if (((struct sockaddr *)rp->ai_addr)->sa_family == AF_INET)
+		if (rp->ai_family == AF_INET)
 			printf("Listen on: ipv4: %s, port: %d\n", ip, p);
-        else if (((struct sockaddr *)rp->ai_addr)->sa_family == AF_INET)
+        else if (rp->ai_family == AF_INET6)
 			printf("Listen on: ipv6: %s, port: %d\n", ip, p);
         else
-            printf("Listen on: unknown\n");
+            printf("Listen on: unknown family: %d\n", rp->ai_family);
 #endif
+        sock = socket(rp->ai_family, rp->ai_socktype, rp->ai_protocol);
+        if (sock == -1) {
+            perror("socket");
+            --sock_num;
+            continue;
+        }
+        v = 1;
+        if (setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &v, sizeof(v)) < 0) {
+            perror("setsockopt");
+            --sock_num;
+            continue;
+        }
+        if (bind(sock, rp->ai_addr, rp->ai_addrlen) < 0) {
+            perror("bind");
+            --sock_num;
+            continue;
+        }
+        if (listen(sock, MAX_LISTEN) < 0) {
+            perror("listen");
+            --sock_num;
+            continue;
+        }
+        socks[i++] = sock;
     }
     freeaddrinfo(result);
 
-    return 0;
+    return sock_num;
 }
 
 void
@@ -96,7 +104,7 @@ network_loop(char *address, char *port)
     char ip[INET6_ADDRSTRLEN] = {0};
 #endif
 
-    if (init_net(address, port, listen_sock, &sock_num) < 0) {
+    if ((sock_num = init_net(address, port, &listen_sock)) == 0) {
         fprintf(stderr, "Fail to initial network!\n");
         exit(EXIT_FAILURE);
     }
@@ -104,13 +112,12 @@ network_loop(char *address, char *port)
     for (i = 0; i < FD_SETSIZE; ++i)
         connection[i].fd = -1;
 
-    for (i = 0; i < sock_num; ++i)
+    FD_ZERO(&fdset);
+    for (i = 0; i < sock_num; ++i) {
         if (fd_max < listen_sock[i])
             fd_max = listen_sock[i];
-
-    FD_ZERO(&fdset);
-    FD_SET(listen_sock[0], &fdset);
-    FD_SET(listen_sock[1], &fdset);
+        FD_SET(listen_sock[i], &fdset);
+    }
 
     if (init_handle() != 0) {
         fprintf(stderr, "Fail to initialize handle!");
@@ -174,6 +181,8 @@ network_loop(char *address, char *port)
 
     for (i = 0; i < sock_num; ++i)
         close(listen_sock[i]);
+
+    free(listen_sock);
 
     destroy_handle();
 }
