@@ -111,6 +111,21 @@ _wkday(const char *str)
 }
 
 static const char *
+_weekday(const char *str)
+{
+    static const char * strweek[] = {
+        "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"
+    };
+    static const int lenweek[] = {6, 7, 9, 8, 6, 8, 6};
+    int i;
+    for (i = 0; i < 7; ++i) {
+        if (try_match(&str, strweek[i], lenweek[i]))
+            break;
+    }
+    return i < 7 ? str : NULL;
+}
+
+static const char *
 _time(const char *str)
 {
     if ((str = digit(str, 2)) != NULL &&
@@ -137,6 +152,31 @@ _date1(const char *str)
 }
 
 static const char *
+_date2(const char *str)
+{
+    if ((str = digit(str, 2)) != NULL &&
+            try_match(&str, "-", 1) &&
+            (str = _month(str)) != NULL &&
+            try_match(&str, "-", 1) &&
+            (str = digit(str, 2)) != NULL)
+        return str;
+    else
+        return NULL;
+}
+
+static const char *
+_date3(const char *str)
+{
+    if ((str = _month(str)) != NULL &&
+            try_match(&str, SP_STR, 1) &&
+            (try_match(&str, SP_STR, 1) || (str = digit(str, 1)) != NULL) &&
+            (str = digit(str, 1)) != NULL)
+        return str;
+    else
+        return NULL;
+}
+
+static const char *
 rfc1123_date(const char *str)
 {
     if ((str = _wkday(str)) != NULL &&
@@ -151,9 +191,45 @@ rfc1123_date(const char *str)
 }
 
 static const char *
+rfc850_date(const char *str)
+{
+    if ((str = _weekday(str)) != NULL &&
+            try_match(&str, "," SP_STR, 2) &&
+            (str = _date2(str)) != NULL &&
+            try_match(&str, SP_STR, 1) &&
+            (str = _time(str)) != NULL &&
+            try_match(&str, SP_STR "GMT", 4))
+        return str;
+    else
+        return NULL;
+}
+
+static const char *
+asctime_date(const char *str)
+{
+    if ((str = _wkday(str)) != NULL &&
+            try_match(&str, SP_STR, 1) &&
+            (str = _date3(str)) != NULL &&
+            try_match(&str, SP_STR, 1) &&
+            (str = _time(str)) != NULL &&
+            try_match(&str, SP_STR, 1) &&
+            (str = digit(str, 4)) != NULL)
+        return str;
+    else
+        return NULL;
+}
+
+static const char *
 http_date(const char *str)
 {
-    return rfc1123_date(str);
+    const char *ret;
+
+    ret = rfc1123_date(str);
+    if (ret == NULL)
+        ret = rfc850_date(str);
+    if (ret == NULL)
+        ret = asctime_date(str);
+    return ret;
 }
 
 static const char *
