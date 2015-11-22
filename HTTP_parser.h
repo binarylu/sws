@@ -7,7 +7,7 @@
  * Needn't allocate/free memory.
  */
 int decode_request(/*Input*/const char *content, /*Output*/_request *request);
-int encode_response(/*Input*/const _response *response, /*Output*/char *content);
+char * encode_response(/*Input*/const _response *response);
 
 
 #endif /* end of include guard: __HTTP_PARSER_H__ */
