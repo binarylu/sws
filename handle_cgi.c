@@ -1,6 +1,6 @@
 #include "handle_cgi.h"
+#include "handle_response.h"
 
-void cgi_respond_404(_response *);
 int cgi_respond(_response *, char *, int);
 
 int
@@ -10,7 +10,7 @@ handle_cgi(/*Input*/const _request *req, /*Output*/_response *resp)
 
     if (access(cgipath, X_OK) == -1) {
         perror("access");
-        cgi_respond_404(resp);
+        respond_not_found(resp);
         exit(1);
     }
 
@@ -51,13 +51,6 @@ handle_cgi(/*Input*/const _request *req, /*Output*/_response *resp)
         wait(0);
     }
     return 0;
-}
-
-void
-cgi_respond_404(_response *resp)
-{
-    resp->code = 404;
-    resp->desc = "Not Found";
 }
 
 int
