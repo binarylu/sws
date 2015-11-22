@@ -124,8 +124,10 @@ response_addfield(_response *resp, const char *key,
         return -1;
     }
 
-    assert(strlcpy(node->key, key, keylen + 1));
-    assert(strlcpy(node->value, val, vallen + 1));
+    assert(strncpy(node->key, key, keylen));
+    assert(strncpy(node->value, val, vallen));
+    node->key[keylen] = '\0';
+    node->value[vallen] = '\0';
 
     last = resp->header_entry;
     if (last == NULL)
