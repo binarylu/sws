@@ -70,7 +70,7 @@ handle(_connection *connection)
                     printf("cgi abs path: %s\n", get_absolute_path(request->uri, REQ_CGI));
                     break;
                 case REQ_STATIC:
-                    handle_cgi(request, response);
+                    handle_static(request, response);
                     printf("static abs path: %s\n", get_absolute_path(request->uri, REQ_STATIC));
                     break;
                 case REQ_OTHER: handle_other(request, response); break;
