@@ -1,11 +1,5 @@
 #include "handle_static.h"
 
-#define MAX_TIME_SIZE 100
-#define SERVER_NAME "sws"
-#define SERVER_NAME_SIZE 3
-#define VERSION "HTTP/1.0"
-#define BUFF_SIZE 1024
-
 int
 handle_static(/*Input*/const _request *request, /*Output*/_response *response)
 {
@@ -53,7 +47,7 @@ handle_static(/*Input*/const _request *request, /*Output*/_response *response)
 }
 
 int
-if_modified(_request *request, struct stat req_stat)
+if_modified(const _request *request, const struct stat req_stat)
 {
     _head_entry head = request->header_entry;
     for (;head;head = head->next){
@@ -67,7 +61,7 @@ if_modified(_request *request, struct stat req_stat)
 }
 
 int
-same_time(char* val, time_t mtime)
+same_time(const char* val, const time_t mtime)
 {
     char time_buff[MAX_TIME_SIZE];
     struct tm *p;
@@ -86,7 +80,7 @@ same_time(char* val, time_t mtime)
 }
 
 int
-set_file(_request *request, struct stat req_stat, _response *response)
+set_file(const _request *request, const struct stat req_stat, _response *response)
 { 
     int req_fd;
     int nums;
@@ -120,63 +114,4 @@ set_directory(_request *request, struct stat req_stat, _response *response)
 {
 }
 
-
-
-int
-generate_desc(_response* response)
-{
-    switch(response->code) {
-        case 200: 
-            response->desc = "OK";
-            break; 
-        case 201: 
-            response->desc = "Created";
-            break; 
-        case 202: 
-            response->desc = "Accepted";
-            break; 
-        case 204: 
-            response->desc = "No Content";
-            break; 
-        case 300: 
-            response->desc = "Multiple Choices";
-            break; 
-        case 301: 
-            response->desc = "Moved Permanently";
-            break; 
-        case 302: 
-            response->desc = "Moved Temporarily";
-            break; 
-        case 304: 
-            response->desc = "Not Modified";
-            break; 
-        case 400: 
-            response->desc = "Bad Request";
-            break; 
-        case 401: 
-            response->desc = "Unauthorized";
-            break; 
-        case 403: 
-            response->desc = "Forbidden";
-            break; 
-        case 404: 
-            response->desc = "Not Found";
-            break; 
-        case 500: 
-            response->desc = "Internal Server Error";
-            break; 
-        case 501: 
-            response->desc = "Not Implemented";
-            break; 
-        case 502: 
-            response->desc = "Bad Gateway";
-            break; 
-        case 503: 
-            response->desc = "Service Unavailable";
-            break; 
-        default:
-            return -1;
-    } 
-    return 0;
-}
 
