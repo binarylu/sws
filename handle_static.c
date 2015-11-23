@@ -3,6 +3,115 @@
 int
 handle_static(/*Input*/const _request *request, /*Output*/_response *response)
 {
-    // Test
+    struct stat req_stat;
+    char time_buff[MAX_TIME_SIZE];
+    response->version = VERSION;
+    get_date_rfc1123(time_buff, MAX_TIME_SIZE);
+    response_addfield(response, "Date", 4, time_buff, MAX_TIME_SIZE);
+    response_addfield(response, "Server", 6, SERVER_NAME, SERVER_NAME_SIZE);
+    request->uri = get_absolute_path(request->uri, REQ_STATIC);
+
+    if (stat(request->uri, req_stat) < 0) {
+        if (strcmp(strerror(errno), ENOENT)) {
+            response->code = 404;
+            generate_desc(response);
+        } else if (strcmp(strerror(errno), EACCES)){
+            response->code = 403;
+            generate_desc(response);
+        } else {
+            response->code = 400;
+            generate_desc(response);
+        }
+        return 0;
+    }
+    if (validate_path_security(request->uri, REQ_STATIC)){
+        response->code = 403;
+        generate_desc(response);
+        return 0;
+    }
+
+    
+    if (if_modified(request, req_stat)) {
+        response->code = 304;
+        generate_desc(response);
+        return 0;
+    }
+
+    if (S_ISREG(req_stat.st_mode)) {
+        set_file(request, req_stat, response);
+    } else if (S_ISDIR(req_stat.st_mode)) {
+        set_directory(request, req_stat, response);
+    }
+
     return 0;
 }
+
+int
+if_modified(const _request *request, const struct stat req_stat)
+{
+    _head_entry head = request->header_entry;
+    for (;head;head = head->next){
+        if (!strcmp(head->key, "If-Modified-Since")){
+            if (same_time(head->value, req_stat.st_mtime))
+                return 1;
+            else return 0;
+        }
+    }
+    return 0;
+}
+
+int
+same_time(const char* val, const time_t mtime)
+{
+    char time_buff[MAX_TIME_SIZE];
+    struct tm *p;
+    p = gmtime(mtime);
+    
+    strftime(time_buff, MAX_TIME_SIZE, "%a, %d %b %Y %H GMT", p);
+    if (!strcmp(val, time_buff)) return 1;
+
+    strftime(time_buff, MAX_TIME_SIZE, "%A, %d-%b-%y %H GMT", p);
+    if (!strcmp(val, time_buff)) return 1;
+
+    strftime(time_buff, MAX_TIME_SIZE, "%c", p);
+    if (!strcmp(val, time_buff)) return 1;
+
+    return 0;
+}
+
+int
+set_file(const _request *request, const struct stat req_stat, _response *response)
+{ 
+    int req_fd;
+    int nums;
+    int buf[BUFF_SIZE];
+    if ((req_fd = open(request->uri, O_RDONLY)) == -1 ) {
+        response->code = 500;
+        generate_desc(response);
+        return 0;
+    }
+    
+    while ((nums = read(req_fd, buf, BUFF_SIZE)) > 0) {
+        
+    }
+    if (nums < 0) {
+        response->code = 500;
+        generate_desc(response);
+        return 0;
+    }
+  
+    // Close the files
+    if (close(req_fd) == -1 ) {
+        response->code = 500;
+        generate_desc(response);
+        return 0;
+    }
+}
+
+
+int 
+set_directory(_request *request, struct stat req_stat, _response *response)
+{
+}
+
+
