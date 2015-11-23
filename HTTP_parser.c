@@ -310,8 +310,76 @@ decode_request(/*Input*/const char *content, /*Output*/_request *request)
     }
 }
 
-int
-encode_response(/*Input*/const _response *response, /*Output*/char *content)
+char *
+encode_response(/*Input*/const _response *response)
 {
-    return 0;
+    int length, count;
+    char *content, *pos;
+    _header_entry *header;
+
+    /* Status-Line */
+    length = strlen(response->version) + 1 +
+        3 + 1 +
+        strlen(response->desc) + 2;
+
+    /* Header */
+    header = response->header_entry;
+    while (header != NULL) {
+        length += strlen(header->key) + 2 +
+            strlen(header->value) + 2;
+        header = header->next;
+    }
+    
+    /* CRLF */
+    length += 2;
+
+    /* Entity Body */
+    if (response->body != NULL)
+        length += strlen(response->body);
+
+    /* null terminator */
+    length += 1;
+
+    if ((content = (char *)malloc(length)) == NULL) {
+        perror("can't allocate memory");
+        return NULL;
+    }
+    pos = content;
+
+    if ((count = snprintf(pos, length, "%s %u %s\r\n",
+            response->version, response->code, response->desc)) < 0) {
+        perror("write request error");
+        free(content);
+        return NULL;
+    }
+    length -= count;
+    pos += count;
+
+    header = response->header_entry;
+    while (header != NULL) {
+        if ((count = snprintf(pos, length, "%s: %s\r\n",
+                header->key, header->value)) < 0) {
+            perror("write request error");
+            free(content);
+            return NULL;
+        }
+        length -= count;
+        pos += count;
+        header = header->next;
+    }
+
+    if (snprintf(pos, length, "\r\n") < 0) {
+        perror("write request error");
+        free(content);
+        return NULL;
+    }
+    if (response->body != NULL) {
+        if(snprintf(pos, length, "%s", response->body) < 0) {
+            perror("write request error");
+            free(content);
+            return NULL;
+        }
+    }
+
+    return content;
 }
