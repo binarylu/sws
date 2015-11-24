@@ -38,12 +38,16 @@ handle_static(/*Input*/_request *request, /*Output*/_response *response)
     }
 
     if (S_ISREG(req_stat->st_mode)) {
-        set_file(request, req_stat, response);
+        if (!set_file(request, req_stat, response))
+            return 0;
     } else if (S_ISDIR(req_stat->st_mode)) {
-        set_directory(request, req_stat, response);
+        if (!set_directory(request, req_stat, response))
+            return 0;
     }
 
-    return 0;
+    response->code = 500;
+    generate_desc(response);
+    return 1;
 }
 
 int
