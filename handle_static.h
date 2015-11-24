@@ -14,10 +14,10 @@
  * Needn't allocate/free memory.
  */
 int handle_static(/*Input*/const _request *request, /*Output*/_response *response);
-int if_modified(const _request *request, const struct stat req_stat)
-int same_time(const char* val, const time_t mtime)
-int set_file(const _request *request, const struct stat req_stat, _response *response)
-int set_directory(_request *request, struct stat req_stat, _response *response)
+int if_modified(const _request *request, const struct stat req_stat);
+int same_time(const char* val, const time_t mtime);
+int set_file(const _request *request, const struct stat req_stat, _response *response);
+int set_directory(_request *request, struct stat req_stat, _response *response);
 
 
 #endif /* end of include guard: __HANDLE_STATIC_H__ */
