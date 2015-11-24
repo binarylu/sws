@@ -127,6 +127,23 @@ set_file(const _request *request, const struct stat* req_stat, _response *respon
 int 
 set_directory(const _request *request, struct stat* req_stat, _response *response)
 {
+    DIR *dirp;
+    struct dirent *dp;
+    int len;
+    char *path;
+    dirp = opendir(request->uri);
+    len = strlen(INDEX);
+    while ((dp = readdir(dirp)) != NULL) {
+            if (dp->d_namlen == len && strcmp(dp->d_name, INDEX) == 0) {
+                path = request->uri;   
+                if (path[strlen(path)-1] != '/')
+                    strcat(path, "/");
+                strcat(path, INDEX);
+                (void)closedir(dirp);
+                return set_file(request, req_stat, response);
+            }
+    }
+    (void)closedir(dirp);
     return 0;
 }
 
