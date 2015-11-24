@@ -40,11 +40,11 @@ handle_static(/*Input*/_request *request, /*Output*/_response *response)
         return 0;
     }
     
-    p = gmtime(&(req-stat->st_mtime));
+    p = gmtime(&(req_stat->st_mtime));
     strftime(time_buff, MAX_TIME_SIZE, "%a, %d %b %Y %H GMT", p);
     response_addfield(response, "Last-Modified", 13, time_buff, strlen(time_buff));
 
-    sprintf(str, "%d", req_stat->st_size);
+    sprintf(str, "%lld", req_stat->st_size);
     response_addfield(response, "Content-Length", 14, str, strlen(str));
 
     if (S_ISREG(req_stat->st_mode)) {
