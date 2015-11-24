@@ -4,10 +4,13 @@ int
 handle_static(/*Input*/_request *request, /*Output*/_response *response)
 {
     struct stat* req_stat;
+    char str[20];
     char time_buff[MAX_TIME_SIZE];
+    struct tm *p;
+
     response->version = VERSION;
     get_date_rfc1123(time_buff, MAX_TIME_SIZE);
-    response_addfield(response, "Date", 4, time_buff, MAX_TIME_SIZE);
+    response_addfield(response, "Date", 4, time_buff, strlen(time_buff));
     response_addfield(response, "Server", 6, SERVER_NAME, SERVER_NAME_SIZE);
     request->uri = get_absolute_path(request->uri, REQ_STATIC);
 
@@ -36,6 +39,13 @@ handle_static(/*Input*/_request *request, /*Output*/_response *response)
         generate_desc(response);
         return 0;
     }
+    
+    p = gmtime(&(req-stat->st_mtime));
+    strftime(time_buff, MAX_TIME_SIZE, "%a, %d %b %Y %H GMT", p);
+    response_addfield(response, "Last-Modified", 13, time_buff, strlen(time_buff));
+
+    sprintf(str, "%d", req_stat->st_size);
+    response_addfield(response, "Content-Length", 14, str, strlen(str));
 
     if (S_ISREG(req_stat->st_mode)) {
         if (!set_file(request, req_stat, response))
@@ -47,7 +57,7 @@ handle_static(/*Input*/_request *request, /*Output*/_response *response)
 
     response->code = 500;
     generate_desc(response);
-    return 1;
+    return -1;
 }
 
 int
