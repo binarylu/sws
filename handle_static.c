@@ -147,4 +147,20 @@ set_directory(const _request *request, struct stat* req_stat, _response *respons
     return 0;
 }
 
+#ifdef __linux
+const char*
+getMIME(const char* path)
+{
+    const char *mime;
+    magic_t magic;
+
+    magic = magic_open(MAGIC_MIME_TYPE); 
+    magic_load(magic, NULL);
+    magic_compile(magic, NULL);
+    mime = magic_file(magic, path);
+    magic_close(magic);
+
+    return mime;
+}
+#endif
 
