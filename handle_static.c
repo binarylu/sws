@@ -1,9 +1,9 @@
 #include "handle_static.h"
 
 int
-handle_static(/*Input*/const _request *request, /*Output*/_response *response)
+handle_static(/*Input*/_request *request, /*Output*/_response *response)
 {
-    struct stat req_stat;
+    struct stat* req_stat;
     char time_buff[MAX_TIME_SIZE];
     response->version = VERSION;
     get_date_rfc1123(time_buff, MAX_TIME_SIZE);
@@ -12,10 +12,10 @@ handle_static(/*Input*/const _request *request, /*Output*/_response *response)
     request->uri = get_absolute_path(request->uri, REQ_STATIC);
 
     if (stat(request->uri, req_stat) < 0) {
-        if (strcmp(strerror(errno), ENOENT)) {
+        if (errno == ENOENT) {
             response->code = 404;
             generate_desc(response);
-        } else if (strcmp(strerror(errno), EACCES)){
+        } else if (errno == EACCES){
             response->code = 403;
             generate_desc(response);
         } else {
@@ -37,9 +37,9 @@ handle_static(/*Input*/const _request *request, /*Output*/_response *response)
         return 0;
     }
 
-    if (S_ISREG(req_stat.st_mode)) {
+    if (S_ISREG(req_stat->st_mode)) {
         set_file(request, req_stat, response);
-    } else if (S_ISDIR(req_stat.st_mode)) {
+    } else if (S_ISDIR(req_stat->st_mode)) {
         set_directory(request, req_stat, response);
     }
 
@@ -47,12 +47,12 @@ handle_static(/*Input*/const _request *request, /*Output*/_response *response)
 }
 
 int
-if_modified(const _request *request, const struct stat req_stat)
+if_modified(const _request *request, const struct stat* req_stat)
 {
-    _head_entry head = request->header_entry;
+    _header_entry* head = request->header_entry;
     for (;head;head = head->next){
         if (!strcmp(head->key, "If-Modified-Since")){
-            if (same_time(head->value, req_stat.st_mtime))
+            if (same_time(head->value, req_stat->st_mtime))
                 return 1;
             else return 0;
         }
@@ -65,7 +65,7 @@ same_time(const char* val, const time_t mtime)
 {
     char time_buff[MAX_TIME_SIZE];
     struct tm *p;
-    p = gmtime(mtime);
+    p = gmtime(&mtime);
     
     strftime(time_buff, MAX_TIME_SIZE, "%a, %d %b %Y %H GMT", p);
     if (!strcmp(val, time_buff)) return 1;
@@ -80,7 +80,7 @@ same_time(const char* val, const time_t mtime)
 }
 
 int
-set_file(const _request *request, const struct stat req_stat, _response *response)
+set_file(const _request *request, const struct stat* req_stat, _response *response)
 { 
     int req_fd;
     int nums;
@@ -106,12 +106,14 @@ set_file(const _request *request, const struct stat req_stat, _response *respons
         generate_desc(response);
         return 0;
     }
+    return 0;
 }
 
 
 int 
-set_directory(_request *request, struct stat req_stat, _response *response)
+set_directory(const _request *request, struct stat* req_stat, _response *response)
 {
+    return 0;
 }
 
 

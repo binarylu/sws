@@ -1,7 +1,17 @@
 #ifndef __HANDLE_STATIC_H__
 #define __HANDLE_STATIC_H__
 
-#include "public.h"
+#include <errno.h>
+#include <string.h>
+#include <sys/stat.h>
+#include <time.h>
+#include <fcntl.h>
+#include <sys/types.h>
+#include <sys/uio.h>
+#include <unistd.h>
+
+#include "handle_response.h"
+
 
 #define MAX_TIME_SIZE 100
 #define SERVER_NAME "sws"
@@ -13,11 +23,11 @@
 /*
  * Needn't allocate/free memory.
  */
-int handle_static(/*Input*/const _request *request, /*Output*/_response *response);
-int if_modified(const _request *request, const struct stat req_stat);
+int handle_static(/*Input*/_request *request, /*Output*/_response *response);
+int if_modified(const _request *request, const struct stat* req_stat);
 int same_time(const char* val, const time_t mtime);
-int set_file(const _request *request, const struct stat req_stat, _response *response);
-int set_directory(_request *request, struct stat req_stat, _response *response);
+int set_file(const _request *request, const struct stat* req_stat, _response *response);
+int set_directory(const _request *request, struct stat* req_stat, _response *response);
 
 
 #endif /* end of include guard: __HANDLE_STATIC_H__ */
