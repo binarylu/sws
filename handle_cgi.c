@@ -1,17 +1,32 @@
 #include "handle_cgi.h"
 #include "handle_response.h"
 
-int cgi_respond(_response *, char *, int);
+void cgi_respond_ok(_response *, char *, int);
 
 int
 handle_cgi(/*Input*/const _request *req, /*Output*/_response *resp)
 {
     char *cgipath = get_absolute_path(req->uri, REQ_CGI);
+    struct stat pathstat;
 
+    /* no file existed, respond 404 */
+    if(stat(cgipath, &pathstat) == -1) {
+        perror("stat");
+        respond_not_found(resp);
+        return 0;
+    }
+
+    /* not regular file, respond 403 */
+    if(!S_ISREG(pathstat.st_mode)) {
+        respond_forbidden(resp);
+        return 0;
+    }
+
+    /* can't execute file, respond 403 */
     if (access(cgipath, X_OK) == -1) {
         perror("access");
-        respond_not_found(resp);
-        exit(1);
+        respond_forbidden(resp);
+        return 0;
     }
 
     int pipefd[2];
@@ -44,7 +59,7 @@ handle_cgi(/*Input*/const _request *req, /*Output*/_response *resp)
             } else if (count == 0) {
                 break;
             } else {
-                cgi_respond(resp, buffer, count);
+                cgi_respond_ok(resp, buffer, count);
             }
         }
         close(pipefd[0]);
@@ -53,10 +68,10 @@ handle_cgi(/*Input*/const _request *req, /*Output*/_response *resp)
     return 0;
 }
 
-int
-cgi_respond(_response *resp, char *buffer, int count)
+void
+cgi_respond_ok(_response *resp, char *buffer, int buflen)
 {
-    return 0;
+    resp->code = 200;
+    resp->desc = "OK";
+    resp->body = buffer;
 }
-
-
