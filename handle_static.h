@@ -10,9 +10,7 @@
 #include <sys/uio.h>
 #include <unistd.h>
 #include <dirent.h>
-#ifdef __linux
-#include <magic.h>>
-#endif
+#include <magic.h>
 
 #include "handle_response.h"
 

@@ -147,7 +147,6 @@ set_directory(const _request *request, struct stat* req_stat, _response *respons
     return 0;
 }
 
-#ifdef __linux
 const char*
 getMIME(const char* path)
 {
@@ -162,5 +161,4 @@ getMIME(const char* path)
 
     return mime;
 }
-#endif
 
