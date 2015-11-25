@@ -41,7 +41,7 @@ handle_cgi(/*Input*/const _request *req, /*Output*/_response *resp)
     } else if (pid == 0) {
         while ((dup2(pipefd[1], STDOUT_FILENO) == -1) && (errno == EINTR)) {}
         close(pipefd[0]);
-        execl(req->uri, (char*)0);
+        execl(cgipath, (char*)0);
         perror("execl");
         _exit(1);
     } else {
@@ -59,7 +59,8 @@ handle_cgi(/*Input*/const _request *req, /*Output*/_response *resp)
             } else if (count == 0) {
                 break;
             } else {
-                cgi_respond_ok(resp, buffer, count);
+                // cgi_respond_ok(resp, buffer, count);
+                printf("%s\n", buffer);
             }
         }
         close(pipefd[0]);
@@ -73,5 +74,9 @@ cgi_respond_ok(_response *resp, char *buffer, int buflen)
 {
     resp->code = 200;
     resp->desc = "OK";
+    char *k = "Content-Length";
+    char v[20];
+    sprintf(v, "%d", buflen);
+    response_addfield(resp, k, strlen(k), v, strlen(v));
     resp->body = buffer;
 }
