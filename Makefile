@@ -11,7 +11,7 @@ OBJ = net.o \
 
 #CFLAGS = -g -Wall -pedantic-errors
 CFLAGS = -g -Wall
-#LIB = -pthread
+LIB = -lmagic
 
 $(BIN): $(OBJ)
 	$(CC) -o $(BIN) $^ $(LIB)

@@ -3,7 +3,7 @@
 int
 handle_static(/*Input*/_request *request, /*Output*/_response *response)
 {
-    struct stat* req_stat;
+    struct stat* req_stat = (struct stat*)malloc(sizeof(struct stat));
     char str[20];
     char time_buff[MAX_TIME_SIZE];
     struct tm *p;
@@ -44,7 +44,7 @@ handle_static(/*Input*/_request *request, /*Output*/_response *response)
     strftime(time_buff, MAX_TIME_SIZE, "%a, %d %b %Y %H GMT", p);
     response_addfield(response, "Last-Modified", 13, time_buff, strlen(time_buff));
 
-    sprintf(str, "%lld", req_stat->st_size);
+    sprintf(str, "%d", (int)(req_stat->st_size));
     response_addfield(response, "Content-Length", 14, str, strlen(str));
 
     if (S_ISREG(req_stat->st_mode)) {
@@ -130,14 +130,12 @@ set_directory(const _request *request, struct stat* req_stat, _response *respons
 {
     DIR *dirp;
     struct dirent *dp;
-    int len;
     char *path;
     const char* mime;
 
     dirp = opendir(request->uri);
-    len = strlen(INDEX);
     while ((dp = readdir(dirp)) != NULL) {
-            if (dp->d_namlen == len && strcmp(dp->d_name, INDEX) == 0) {
+            if (strcmp(dp->d_name, INDEX) == 0) {
                 path = request->uri;   
                 if (path[strlen(path)-1] != '/')
                     strcat(path, "/");
