@@ -3,18 +3,18 @@
 int
 handle_static(/*Input*/_request *request, /*Output*/_response *response)
 {
-    struct stat* req_stat = (struct stat*)malloc(sizeof(struct stat));
+    struct stat req_stat;
     char str[20];
     char time_buff[MAX_TIME_SIZE];
     struct tm *p;
 
-    response->version = VERSION;
+    response->version = generate_str(VERSION);
     get_date_rfc1123(time_buff, MAX_TIME_SIZE);
     response_addfield(response, "Date", 4, time_buff, strlen(time_buff));
     response_addfield(response, "Server", 6, SERVER_NAME, SERVER_NAME_SIZE);
     request->uri = get_absolute_path(request->uri, REQ_STATIC);
 
-    if (stat(request->uri, req_stat) < 0) {
+    if (stat(request->uri, &req_stat) < 0) {
         if (errno == ENOENT) {
             response->code = 404;
             generate_desc(response);
@@ -27,31 +27,31 @@ handle_static(/*Input*/_request *request, /*Output*/_response *response)
         }
         return 0;
     }
-    if (validate_path_security(request->uri, REQ_STATIC)){
+    if (validate_path_security(request->uri, REQ_STATIC) == 0){
         response->code = 403;
         generate_desc(response);
         return 0;
     }
 
     
-    if (if_modified(request, req_stat)) {
+    if (if_modified(request, &req_stat)) {
         response->code = 304;
         generate_desc(response);
         return 0;
     }
     
-    p = gmtime(&(req_stat->st_mtime));
-    strftime(time_buff, MAX_TIME_SIZE, "%a, %d %b %Y %H GMT", p);
+    p = gmtime(&(req_stat.st_mtime));
+    strftime(time_buff, MAX_TIME_SIZE, "%a, %d %b %Y %T GMT", p);
     response_addfield(response, "Last-Modified", 13, time_buff, strlen(time_buff));
 
-    sprintf(str, "%d", (int)(req_stat->st_size));
+    sprintf(str, "%d", (int)(req_stat.st_size));
     response_addfield(response, "Content-Length", 14, str, strlen(str));
 
-    if (S_ISREG(req_stat->st_mode)) {
-        if (set_file(request, req_stat, response) == 0)
+    if (S_ISREG(req_stat.st_mode)) {
+        if (set_file(request, &req_stat, response) == 0)
             return 0;
-    } else if (S_ISDIR(req_stat->st_mode)) {
-        if (set_directory(request, req_stat, response) == 0)
+    } else if (S_ISDIR(req_stat.st_mode)) {
+        if (set_directory(request, &req_stat, response) == 0)
             return 0;
     }
 
@@ -81,10 +81,10 @@ same_time(const char* val, const time_t mtime)
     struct tm *p;
     p = gmtime(&mtime);
     
-    strftime(time_buff, MAX_TIME_SIZE, "%a, %d %b %Y %H GMT", p);
+    strftime(time_buff, MAX_TIME_SIZE, "%a, %d %b %Y %T GMT", p);
     if (strcmp(val, time_buff) == 0) return 1;
 
-    strftime(time_buff, MAX_TIME_SIZE, "%A, %d-%b-%y %H GMT", p);
+    strftime(time_buff, MAX_TIME_SIZE, "%A, %d-%b-%y %T GMT", p);
     if (strcmp(val, time_buff) == 0) return 1;
 
     strftime(time_buff, MAX_TIME_SIZE, "%c", p);
@@ -106,14 +106,13 @@ set_file(const _request *request, const struct stat* req_stat, _response *respon
     response_addfield(response, "Content-Type", 12, mime, strlen(mime));
 
     body_size = req_stat->st_size;
-    response->body = (char *)malloc(body_size);
+    response->body = (char *)malloc(body_size+1);
+    (response->body)[0] = '\0';
     if ((req_fd = open(request->uri, O_RDONLY)) == -1 ) {
         return -1;
     }
     while ((nums = read(req_fd, buf, BUFF_SIZE)) > 0) {
-        if (strncpy(response->body, buf, nums) != 0){
-            return -1;
-        }
+        strncat(response->body, buf, nums);
     }
     if (nums < 0) {
         return -1;
@@ -121,12 +120,15 @@ set_file(const _request *request, const struct stat* req_stat, _response *respon
     if (close(req_fd) == -1 ) {
         return -1;
     }
+    response->code = 200;
+    generate_desc(response);
+
     return 0;
 }
 
 
 int 
-set_directory(const _request *request, struct stat* req_stat, _response *response)
+set_directory(_request *request, struct stat* req_stat, _response *response)
 {
     DIR *dirp;
     struct dirent *dp;
@@ -141,7 +143,8 @@ set_directory(const _request *request, struct stat* req_stat, _response *respons
                     strcat(path, "/");
                 strcat(path, INDEX);
                 (void)closedir(dirp);
-                return set_file(request, req_stat, response);
+                response_clear(response);
+                return handle_static(request, response);
             }
     }
     (void)closedir(dirp);
@@ -162,6 +165,7 @@ getMIME(const char* path)
     magic_load(magic, NULL);
     magic_compile(magic, NULL);
     mime = magic_file(magic, path);
+    mime = generate_str(mime);
     magic_close(magic);
 
     return mime;

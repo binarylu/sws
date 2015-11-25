@@ -20,7 +20,7 @@ $(BIN): $(OBJ)
 	$(CC) $(CFLAGS) -c -o $@ $<
 
 test_handle: 
-	$(CC) -o test handle_cgi.c public.c test_request.c HTTP_parser.c handle_response.c
+	$(CC) $(CFLAGS) -o test handle_cgi.c public.c test_request.c HTTP_parser.c handle_response.c handle_static.c $(LIB)
 .PHONY: clean
 clean:
 	-rm -fr $(BIN) $(OBJ)
