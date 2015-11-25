@@ -31,6 +31,8 @@ int if_modified(const _request *request, const struct stat* req_stat);
 int same_time(const char* val, const time_t mtime);
 int set_file(const _request *request, const struct stat* req_stat, _response *response);
 int set_directory(const _request *request, struct stat* req_stat, _response *response);
+const char* getMIME(const char* path);
+
 
 #endif /* end of include guard: __HANDLE_STATIC_H__ */
 
