@@ -19,6 +19,8 @@ $(BIN): $(OBJ)
 %.o: %.c
 	$(CC) $(CFLAGS) -c -o $@ $<
 
+test_handle: 
+	$(CC) -o test handle_cgi.c public.c test_request.c HTTP_parser.c handle_response.c
 .PHONY: clean
 clean:
 	-rm -fr $(BIN) $(OBJ)
