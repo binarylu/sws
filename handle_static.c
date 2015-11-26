@@ -98,7 +98,7 @@ set_file(const _request *request, const struct stat* req_stat, _response *respon
 { 
     int req_fd;
     int nums;
-    const char* mime;
+    const char* mime = NULL;
     char buf[BUFF_SIZE];
     int body_size;
 
@@ -159,6 +159,10 @@ const char*
 getMIME(const char* path)
 {
     const char *mime;
+#ifdef __APPLE__
+    mime = generate_str("text/html");
+    return mime;
+#else
     magic_t magic;
 
     magic = magic_open(MAGIC_MIME_TYPE); 
@@ -169,5 +173,5 @@ getMIME(const char* path)
     magic_close(magic);
 
     return mime;
+#endif
 }
-
