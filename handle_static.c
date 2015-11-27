@@ -150,6 +150,7 @@ set_directory(_request *request, struct stat* req_stat, _response *response)
 
     mime = getMIME(request->uri);
     response_addfield(response, "Content-Type", 12, mime, strlen(mime));
+    response->body = generate_index(request->uri);
 
     return 0;
 }
