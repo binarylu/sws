@@ -1,5 +1,6 @@
 BIN = sws
 OBJ = net.o \
+	  index.o \
 	  handle.o \
 	  handle_response.o \
 	  handle_static.o \
