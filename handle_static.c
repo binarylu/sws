@@ -27,6 +27,18 @@ handle_static(/*Input*/_request *request, /*Output*/_response *response)
         }
         return 0;
     }
+
+    if (access(request->uri, R_OK) < 0) {
+        if (errno == EACCES) {
+            response->code = 403;
+            generate_desc(response);
+        } else {
+            response->code = 400;
+            generate_desc(response);
+        }
+        return 0;
+    }
+
     if (validate_path_security(request->uri, REQ_STATIC) == 0){
         response->code = 403;
         generate_desc(response);
