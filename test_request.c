@@ -33,7 +33,7 @@ test_handling(char *filename)
     request_init(request);
     response_init(response);
 
-    request->uri = generate_str("/test_requests");
+    request->uri = generate_str("/test_request");
     request->version = generate_str("VERSION");
 
 //    if (decode_request(buffer, request) != 0) {

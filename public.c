@@ -165,7 +165,7 @@ get_year_mon_day(int* year, int* mon, int* day)
     struct tm *p;
 
     time(&timep);
-    p = localtime(&timep);
+    p = gmtime(&timep);
     *year = p->tm_year + 1900;
     *mon = p->tm_mon + 1;
     *day = p->tm_mday;
@@ -178,7 +178,7 @@ get_date_rfc1123(char *buf, size_t len)
       struct tm *p;
 
       time(&timep);
-      p = localtime(&timep);
+      p = gmtime(&timep);
       strftime(buf, len, "%a, %d %b %Y %T GMT", p);
 }
 
@@ -189,7 +189,7 @@ get_date_rfc850(char *buf, size_t len)
       struct tm *p;
 
       time(&timep);
-      p = localtime(&timep);
+      p = gmtime(&timep);
       strftime(buf, len, "%A, %d-%b-%y %T GMT", p);
 }
 
