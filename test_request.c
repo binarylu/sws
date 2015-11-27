@@ -33,8 +33,9 @@ test_handling(char *filename)
     request_init(request);
     response_init(response);
 
-    request->uri = generate_str("/test_request");
+    request->uri = generate_str("/test_requests");
     request->version = generate_str("VERSION");
+    request_addfield(request, "If-Modified-Since",17 , "Friday, 27-Nov-15 16:50:26 GMT",30);
 
 //    if (decode_request(buffer, request) != 0) {
 //        perror("decode request error");
