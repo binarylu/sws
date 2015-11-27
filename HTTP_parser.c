@@ -368,11 +368,14 @@ encode_response(/*Input*/const _response *response)
         header = header->next;
     }
 
-    if (snprintf(pos, length, "\r\n") < 0) {
+    if ((count = snprintf(pos, length, "\r\n")) < 0) {
         perror("write request error");
         free(content);
         return NULL;
     }
+    length -= count;
+    pos += count;
+
     if (response->body != NULL) {
         if(snprintf(pos, length, "%s", response->body) < 0) {
             perror("write request error");
