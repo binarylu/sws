@@ -46,9 +46,11 @@ handle_cgi(/*Input*/const _request *req, /*Output*/_response *resp)
         _exit(1);
     } else {
         close(pipefd[1]);
-        char buffer[4096];
+        char *buffer = (char *)malloc(4096);
+        size_t pos = 0;
         while (1) {
-            ssize_t count = read(pipefd[0], buffer, sizeof(buffer));
+            ssize_t count = read(pipefd[0], buffer + pos, sizeof(buffer));
+            pos += count;
             if (count == -1) {
                 if (errno == EINTR) {
                     continue;
@@ -59,10 +61,12 @@ handle_cgi(/*Input*/const _request *req, /*Output*/_response *resp)
             } else if (count == 0) {
                 break;
             } else {
-                // cgi_respond_ok(resp, buffer, count);
-                printf("%s\n", buffer);
+                //cgi_respond_ok(resp, buffer, count);
+                //printf("%s\n", buffer);
             }
         }
+	cgi_respond_ok(resp, buffer, strlen(buffer));
+	printf("%s\n", buffer);
         close(pipefd[0]);
         wait(0);
     }
@@ -73,10 +77,11 @@ void
 cgi_respond_ok(_response *resp, char *buffer, int buflen)
 {
     resp->code = 200;
-    resp->desc = "OK";
-    char *k = "Content-Length";
-    char v[20];
-    sprintf(v, "%d", buflen);
-    response_addfield(resp, k, strlen(k), v, strlen(v));
+    resp->desc = generate_str("OK");
+    resp->version = generate_str("HTTP/1.0");
+    //char *k = generate_str("Content-Length");
+    //char v[20];
+    //sprintf(v, "%d", buflen);
+    //response_addfield(resp, k, strlen(k), v, strlen(v));
     resp->body = buffer;
 }

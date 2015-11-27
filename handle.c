@@ -85,12 +85,12 @@ handle(_connection *connection)
                 fprintf(stderr, "send failed\n");
             }
 
-            LOG("%s %s %s %s %s %u %ld\n", ip,
-                    request_time,
-                    request->method == GET_METHOD ? "GET" :
-                    (request->method == HEAD_METHOD ? "HEAD" : "NONE"),
-                    request->uri, request->version,
-                    response->code, strlen(response->body));
+            //LOG("%s %s %s %s %s %u %ld\n", ip,
+            //        request_time,
+            //        request->method == GET_METHOD ? "GET" :
+            //        (request->method == HEAD_METHOD ? "HEAD" : "NONE"),
+            //        request->uri, request->version,
+            //        response->code, strlen(response->body));
 
             request_clear(request);
             response_clear(response);
