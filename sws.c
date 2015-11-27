@@ -50,6 +50,10 @@ int main(int argc, char *argv[])
         fprintf(stderr, "%s is not a validated cgi dir!\n", g_dir_cgi);
         exit(EXIT_FAILURE);
     }
+    if (logfile != NULL && validate_path(logfile)) {
+        fprintf(stderr, "%s is not a validated file!\n", logfile);
+        exit(EXIT_FAILURE);
+    }
     if (!validate_port(port)) {
         fprintf(stderr, "Invalid port number\n");
         exit(EXIT_FAILURE);
