@@ -19,7 +19,7 @@ handle(_connection *connection)
 {
     char ip[INET6_ADDRSTRLEN];
     char request_time[64];
-    int nread;
+    int nread, nwrite;
     _request *request;
     _response *response;
 
@@ -44,8 +44,8 @@ handle(_connection *connection)
             get_date_rfc1123(request_time, sizeof(request_time));
             sockaddr2string((struct sockaddr *)(connection->addr), ip);
 
-            printf("Request from %s->\n%s\n", ip, connection->buf);
-            printf("=============================\n\n");
+            /*printf("Request from %s->\n%s\n", ip, connection->buf);
+            printf("=============================\n\n");*/
 
             request = connection->request;
             response = connection->response;
@@ -57,12 +57,12 @@ handle(_connection *connection)
                 return -1;
             }
 
-            printf("%d %s %s\n", request->method, request->uri, request->version);
+            /*printf("%d %s %s\n", request->method, request->uri, request->version);
             p = request->header_entry;
             while (p) {
                 printf("%s =====>>>>>> %s\n", p->key, p->value);
                 p = p->next;
-            }
+            }*/
 
             switch (get_request_type(request)) {
                 case REQ_CGI:
@@ -77,17 +77,20 @@ handle(_connection *connection)
                 default: handle_other(request, response);
             }
 
-            encode_response(response);
+            char *resp = encode_response(response);
 
             printf("=============================\n\n");
-            printf("Response to %s->\n%s\n", ip, connection->buf);
+            /*printf("Response to %s->\n%s\n", ip, response->body);*/
+            if ((nwrite = send(connection->fd, resp, strlen(resp), 0)) < 0) {
+                fprintf(stderr, "send failed\n");
+            }
 
-            /*LOG("%s %s %s %s %s %u %ld\n", ip,
+            LOG("%s %s %s %s %s %u %ld\n", ip,
                     request_time,
                     request->method == GET_METHOD ? "GET" :
                     (request->method == HEAD_METHOD ? "HEAD" : "NONE"),
                     request->uri, request->version,
-                    response->code, strlen(response->body));*/
+                    response->code, strlen(response->body));
 
             request_clear(request);
             response_clear(response);
