@@ -77,7 +77,7 @@ handle(_connection *connection)
                 default: handle_other(request, response);
             }
 
-            encode_response(response, connection->buf);
+            encode_response(response);
 
             printf("=============================\n\n");
             printf("Response to %s->\n%s\n", ip, connection->buf);
