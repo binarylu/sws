@@ -152,6 +152,9 @@ set_directory(_request *request, struct stat* req_stat, _response *response)
     response_addfield(response, "Content-Type", 12, mime, strlen(mime));
     response->body = generate_index(request->uri);
 
+    response->code = 200;
+    generate_desc(response);
+
     return 0;
 }
 
