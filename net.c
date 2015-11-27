@@ -182,6 +182,7 @@ network_loop(char *address, char *port)
                     RESET_CONNECTION(connection[i]);
                 } else {
                     FD_CLR(connection[i].fd, &fdset);
+                    fprintf(stdout, "Close the connection with client %s\n", ip);
                     close(connection[i].fd);
                     RESET_CONNECTION(connection[i]);
                 }
