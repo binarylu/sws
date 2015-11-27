@@ -94,7 +94,7 @@ response_clear(_response *resp)
         free(resp->desc);
     if (resp->version != NULL)
         free(resp->version);
-    if (resp->version != NULL)
+    if (resp->body != NULL)
         free(resp->body);
     if (resp->header_entry != NULL)
         free_headers(resp->header_entry);
@@ -129,6 +129,7 @@ response_addfield(_response *resp, const char *key,
     assert(strncpy(node->value, val, vallen));
     node->key[keylen] = '\0';
     node->value[vallen] = '\0';
+    node->next = NULL;
 
     last = resp->header_entry;
     if (last == NULL)
@@ -165,7 +166,7 @@ get_year_mon_day(int* year, int* mon, int* day)
     struct tm *p;
 
     time(&timep);
-    p = localtime(&timep);
+    p = gmtime(&timep);
     *year = p->tm_year + 1900;
     *mon = p->tm_mon + 1;
     *day = p->tm_mday;
@@ -178,8 +179,8 @@ get_date_rfc1123(char *buf, size_t len)
       struct tm *p;
 
       time(&timep);
-      p = localtime(&timep);
-      strftime(buf, len, "%a, %d %b %Y %H GMT", p);
+      p = gmtime(&timep);
+      strftime(buf, len, "%a, %d %b %Y %T GMT", p);
 }
 
 void
@@ -189,8 +190,8 @@ get_date_rfc850(char *buf, size_t len)
       struct tm *p;
 
       time(&timep);
-      p = localtime(&timep);
-      strftime(buf, len, "%A, %d-%b-%y %H GMT", p);
+      p = gmtime(&timep);
+      strftime(buf, len, "%A, %d-%b-%y %T GMT", p);
 }
 
 void
