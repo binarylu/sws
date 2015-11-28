@@ -60,13 +60,9 @@ handle_cgi(/*Input*/const _request *req, /*Output*/_response *resp)
                 }
             } else if (count == 0) {
                 break;
-            } else {
-                //cgi_respond_ok(resp, buffer, count);
-                //printf("%s\n", buffer);
             }
         }
-	cgi_respond_ok(resp, buffer, strlen(buffer));
-	printf("%s\n", buffer);
+	    cgi_respond_ok(resp, buffer, strlen(buffer));
         close(pipefd[0]);
         wait(0);
     }
@@ -78,10 +74,5 @@ cgi_respond_ok(_response *resp, char *buffer, int buflen)
 {
     resp->code = 200;
     resp->desc = generate_str("OK");
-    resp->version = generate_str("HTTP/1.0");
-    //char *k = generate_str("Content-Length");
-    //char v[20];
-    //sprintf(v, "%d", buflen);
-    //response_addfield(resp, k, strlen(k), v, strlen(v));
     resp->body = buffer;
 }
