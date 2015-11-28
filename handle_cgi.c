@@ -75,4 +75,5 @@ cgi_respond_ok(_response *resp, char *buffer, int buflen)
     resp->code = 200;
     resp->desc = generate_str("OK");
     resp->body = buffer;
+    resp->is_cgi = 1;
 }

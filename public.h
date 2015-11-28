@@ -42,6 +42,7 @@ typedef struct __response {
     char *version;
     _header_entry *header_entry;
     char *body;
+    int is_cgi;
 } _response;
 
 typedef struct __connection {

@@ -356,19 +356,19 @@ encode_response(/*Input*/const _response *response)
     pos += count;
 
     header = response->header_entry;
-    if (header != NULL) {
-        while (header != NULL) {
-            if ((count = snprintf(pos, length, "%s: %s\r\n",
-                    header->key, header->value)) < 0) {
-                perror("write request error");
-                free(content);
-                return NULL;
-            }
-            length -= count;
-            pos += count;
-            header = header->next;
+    while (header != NULL) {
+        if ((count = snprintf(pos, length, "%s: %s\r\n",
+                        header->key, header->value)) < 0) {
+            perror("write request error");
+            free(content);
+            return NULL;
         }
+        length -= count;
+        pos += count;
+        header = header->next;
+    }
 
+    if (!response->is_cgi) {
         if ((count = snprintf(pos, length, "\r\n")) < 0) {
             perror("write request error");
             free(content);
@@ -378,14 +378,6 @@ encode_response(/*Input*/const _response *response)
         length -= count;
         pos += count;
     }
-
-    if ((count = snprintf(pos, length, "\r\n")) < 0) {
-        perror("write request error");
-        free(content);
-        return NULL;
-    }
-    length -= count;
-    pos += count;
 
     if (response->body != NULL) {
         if(snprintf(pos, length, "%s", response->body) < 0) {

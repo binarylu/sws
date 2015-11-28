@@ -85,6 +85,7 @@ response_init(_response *resp)
     resp->version = "HTTP/1.0";
     resp->header_entry = NULL;
     resp->body = NULL;
+    resp->is_cgi = 0;
     response_addfield(resp, "Server", 6, "sws", 3);
 }
 
