@@ -82,9 +82,10 @@ response_init(_response *resp)
 {
     resp->code = -1;
     resp->desc = NULL;
-    resp->version = NULL;
+    resp->version = "HTTP/1.0";
     resp->header_entry = NULL;
     resp->body = NULL;
+    response_addfield(resp, "Server", 6, "sws", 3);
 }
 
 void
@@ -92,8 +93,8 @@ response_clear(_response *resp)
 {
     if (resp->desc != NULL)
         free(resp->desc);
-    if (resp->version != NULL)
-        free(resp->version);
+    /*if (resp->version != NULL)
+        free(resp->version);*/
     if (resp->body != NULL)
         free(resp->body);
     if (resp->header_entry != NULL)

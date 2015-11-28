@@ -2,6 +2,7 @@
 #define __HANDLE_CGI_H__
 
 #include "public.h"
+#include <sys/wait.h>
 
 /*
  * Needn't allocate/free memory.

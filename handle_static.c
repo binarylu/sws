@@ -59,6 +59,11 @@ handle_static(/*Input*/_request *request, /*Output*/_response *response)
     response_addfield(response, "Content-Length", 14, str, strlen(str));
 
     if (S_ISREG(req_stat.st_mode)) {
+<<<<<<< HEAD
+=======
+        if (request->method == HEAD_METHOD)
+            return 0;
+>>>>>>> aa6d47c2c1cb572ee2d3326a48a8951a44cfc31e
         if (set_file(request, &req_stat, response) == 0)
             return 0;
     } else if (S_ISDIR(req_stat.st_mode)) {
@@ -162,7 +167,8 @@ set_directory(_request *request, struct stat* req_stat, _response *response)
 
     mime = getMIME(request->uri);
     response_addfield(response, "Content-Type", 12, mime, strlen(mime));
-    response->body = generate_index(request->uri);
+    if (request->method != HEAD_METHOD)
+       response->body = generate_index(request->uri);
 
     response->code = 200;
     generate_desc(response);
