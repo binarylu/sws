@@ -6,6 +6,7 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <errno.h>
+#include <error.h>
 #include <time.h>
 #include <limits.h>
 
@@ -15,7 +16,7 @@
 #include <string.h>
 #include <ctype.h>
 
-#define DEVELOPMENT 0
+#define DEVELOPMENT 1
 
 extern int g_debug;
 extern FILE *g_log;
@@ -87,11 +88,67 @@ int validate_path_security(const char *path, _request_type req_type);
 char *get_absolute_path(const char *path, _request_type req_type);
 
 #define LOG(fmt, arg...) do { \
-    if (g_debug == 1) \
-        fprintf(stdout, fmt, ##arg); \
-    else if (g_log != NULL) { \
-        fprintf(g_log, fmt, ##arg); \
+    if (g_debug == 1) { \
+        fprintf(stdout, fmt"\n", ##arg); \
+    } else if (g_log != NULL) { \
+        fprintf(g_log, fmt"\n", ##arg); \
     } \
 } while(0)
+
+#define MSG(type, fmt, arg...) do { \
+    if (g_debug == 1) { \
+        fprintf(stderr, #type": "fmt"\n", ##arg); \
+    } else if (g_log != NULL) { \
+        fprintf(g_log, #type": "fmt"\n", ##arg); \
+    } \
+} while(0)
+
+#define MSGP(type, fmt, arg...) do { \
+    if (g_debug == 1) { \
+        fprintf(stderr, #type": "fmt": %s\n", ##arg, strerror(errno)); \
+    } else if (g_log != NULL) { \
+        fprintf(g_log, #type": "fmt": %s\n", ##arg, strerror(errno)); \
+    } \
+} while(0)
+
+#define FATAL_ERROR(fmt, arg...) do { \
+    MSGP(Error, fmt, ##arg); \
+    exit(EXIT_FAILURE); \
+} while(0)
+
+#define ERROR(fmt, arg...) do { \
+    MSG(Error, fmt, ##arg); \
+    exit(EXIT_FAILURE); \
+} while(0)
+
+#define RET_ERROR(retval, fmt, arg...) do { \
+    MSG(Error, fmt, ##arg); \
+    return retval; \
+} while(0)
+
+#define RET_ERRORP(retval, fmt, arg...) do { \
+    MSGP(Error, fmt, ##arg); \
+    return retval; \
+} while(0)
+
+#define WARN(fmt, arg...) do { \
+    MSG(Warning, fmt, ##arg); \
+} while(0)
+
+#define WARNP(fmt, arg...) do { \
+    MSGP(Warning, fmt, ##arg); \
+} while(0)
+
+#ifdef DEVELOPMENT
+#define DEBUG(fmt, arg...) do { \
+    MSG(Debug, fmt, ##arg); \
+} while(0)
+#define DEBUGP(fmt, arg...) do { \
+    MSGP(Debug, fmt, ##arg); \
+} while(0)
+#else
+#define DEBUG(fmt, arg...)
+#define DEBUGP(fmt, arg...)
+#endif
 
 #endif /* end of include guard: __PUBLIC_H__ */

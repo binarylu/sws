@@ -23,15 +23,10 @@ handle(_connection *connection)
     _request *request;
     _response *response;
 
-#if DEVELOPMENT
-    _header_entry *p;
-#endif
-
     if (connection->buf == NULL) {
         connection->buf = (char *)malloc(sizeof(char) * BUFFSIZE);
         if (connection->buf == NULL) {
-            perror("Fail to allocate memory for connection buffer!");
-            return -2;
+            RET_ERRORP(-2, "Fail to allocate memory for connection buffer!");
         }
         memset(connection->buf, 0, BUFFSIZE);
     }
@@ -46,10 +41,8 @@ handle(_connection *connection)
             get_date_rfc1123(request_time, sizeof(request_time));
             sockaddr2string((struct sockaddr *)(connection->addr), ip);
 
-#if DEVELOPMENT
-            printf("Request from %s->\n%s\n", ip, connection->buf);
-            printf("=============================\n\n");
-#endif
+            DEBUG("========== Request =========");
+            DEBUG("Request from %s->\n%s", ip, connection->buf);
 
             request = connection->request;
             response = connection->response;
@@ -57,31 +50,29 @@ handle(_connection *connection)
             response_init(response);
 
             if (decode_request(connection->buf, request) != 0) {
-                perror("decode request error");
-                return -1;
+                RET_ERROR(-1, "Decode request error");
             }
 
-#if DEVELOPMENT
-            printf("%d %s %s\n", request->method, request->uri, request->version);
+#ifdef DEVELOPMENT
+            DEBUG("========== Request decode =========");
+            _header_entry *p;
+            DEBUG("%d %s %s", request->method, request->uri, request->version);
             p = request->header_entry;
             while (p) {
-                printf("%s =====>>>>>> %s\n", p->key, p->value);
+                DEBUG("%s =====>>>>>> %s", p->key, p->value);
                 p = p->next;
             }
 #endif
 
+            DEBUG("========== Request handle =========");
             switch (get_request_type(request)) {
                 case REQ_CGI:
                     handle_cgi(request, response);
-#if DEVELOPMENT
-                    printf("cgi abs path: %s\n", get_absolute_path(request->uri, REQ_CGI));
-#endif
+                    DEBUG("cgi abs path: %s", get_absolute_path(request->uri, REQ_CGI));
                     break;
                 case REQ_STATIC:
                     handle_static(request, response);
-#if DEVELOPMENT
-                    printf("static abs path: %s\n", get_absolute_path(request->uri, REQ_STATIC));
-#endif
+                    DEBUG("static abs path: %s", get_absolute_path(request->uri, REQ_STATIC));
                     break;
                 case REQ_OTHER: handle_other(request, response); break;
                 default: handle_other(request, response);
@@ -89,15 +80,13 @@ handle(_connection *connection)
 
             char *resp = encode_response(response);
 
-#if DEVELOPMENT
-            printf("=============================\n\n");
-            printf("Response to %s->\n%s\n", ip, response->body);
-#endif
+            DEBUG("========== Response =========");
+            DEBUG("Response to %s->\n%s", ip, response->body == NULL ? "" : response->body);
             if ((nwrite = send(connection->fd, resp, strlen(resp), 0)) < 0) {
-                fprintf(stderr, "send failed\n");
+                WARNP("Failed to send");
             }
 
-            LOG("%s %s %s %s %s %u %ld\n", ip,
+            LOG("%s %s %s %s %s %u %ld", ip,
                     request_time,
                     request->method == GET_METHOD ? "GET" :
                     (request->method == HEAD_METHOD ? "HEAD" : "NONE"),

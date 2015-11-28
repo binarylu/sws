@@ -8,7 +8,7 @@
 
 #define DEFAULT_PORT "8080"
 
-int g_debug = 1;
+int g_debug = 0;
 FILE *g_log = NULL;
 const char *g_dir = NULL;
 const char *g_dir_cgi = NULL;
@@ -38,45 +38,40 @@ int main(int argc, char *argv[])
     argc -= optind;
     argv += optind;
     if (argc == 0) {
-        fprintf(stderr, "Please provide dir!\n");
-        exit(EXIT_FAILURE);
+        ERROR("Please provide dir!");
     }
     g_dir = argv[0];
     if (!validate_path(g_dir)) {
-        fprintf(stderr, "%s is not a validated dir!\n", g_dir);
-        exit(EXIT_FAILURE);
+        ERROR("%s is not a validated directory!", g_dir);
     }
     if (g_dir_cgi != NULL && !validate_path(g_dir_cgi)) {
-        fprintf(stderr, "%s is not a validated cgi dir!\n", g_dir_cgi);
-        exit(EXIT_FAILURE);
+        ERROR("%s is not a validated CGI directory!", g_dir_cgi);
     }
     if (logfile != NULL && validate_path(logfile)) {
-        fprintf(stderr, "%s is not a validated file!\n", logfile);
-        exit(EXIT_FAILURE);
+        ERROR("%s is not a validated file!", logfile);
     }
     if (!validate_port(port)) {
-        fprintf(stderr, "Invalid port number\n");
-        exit(EXIT_FAILURE);
+        ERROR("Invalid port number!");
     }
 
-#if DEVELOPMENT
-    /*printf("res: %d\n\n", validate_path_security(argv[1], REQ_STATIC));*/
+    DEBUG("========== arguments =========");
+    DEBUG("dir = %s", g_dir);
+    DEBUG("cgi_dir = %s", g_dir_cgi);
+    DEBUG("logfile = %s", logfile);
+    DEBUG("ip = %s", ip);
+    DEBUG("port = %s", port);
 
-    printf("dir = %s\n", g_dir);
-    printf("cgi_dir = %s\n", g_dir_cgi);
-    printf("logfile = %s\n", logfile);
-    printf("ip = %s\n", ip);
-    printf("port = %s\n==========\n", port);
-#endif
-
+#if 0
     if (g_debug == 0)
         if (daemon(0, 0) != 0) {
-            perror("Fail to daemon!");
-            exit(EXIT_FAILURE);
+            FATAL_ERROR("Fail to daemon!");
         }
+#endif
 
     if (logfile != NULL)
-        init_log(logfile);
+        if (init_log(logfile) != 0) {
+            error(-1, errno, "Fail to open log file!");
+        }
 
     network_loop(ip, port);
 

@@ -8,9 +8,9 @@ init_net(const char *address, const char *port, int **listen_sock)
     int sock_num = 0;
     struct addrinfo hints, *result = NULL, *rp = NULL;
 
-#if 1
-    char ip[INET6_ADDRSTRLEN] = {0};
-    unsigned short int p;
+#ifdef DEVELOPMENT
+        char ip[INET6_ADDRSTRLEN] = {0};
+        unsigned short int p;
 #endif
 
     memset(&hints, 0, sizeof(struct addrinfo));
@@ -23,8 +23,7 @@ init_net(const char *address, const char *port, int **listen_sock)
 	hints.ai_next = NULL;*/
 
     if ((s = getaddrinfo(address, port, &hints, &result)) != 0) {
-        fprintf(stderr, "Invalid address: %s.(%s)\n", address, gai_strerror(s));
-        exit(EXIT_FAILURE);
+        ERROR("Invalid address: %s.(%s)", address, gai_strerror(s));
     }
 
     rp = result;
@@ -32,9 +31,8 @@ init_net(const char *address, const char *port, int **listen_sock)
         ++sock_num;
         rp = rp->ai_next;
     }
-#if 1
-    printf("sock_num: %d\n", sock_num);
-#endif
+    DEBUG("========== init net =========");
+    DEBUG("sock_num: %d", sock_num);
     *listen_sock = (int *)malloc(sizeof(int) * sock_num);
     assert(*listen_sock);
 
@@ -45,42 +43,42 @@ init_net(const char *address, const char *port, int **listen_sock)
             --sock_num;
             continue;
         }
-#if 1
-        sockaddr2string((struct sockaddr *)rp->ai_addr, ip);
-        p = get_port((struct sockaddr *)rp->ai_addr);
-		if (rp->ai_family == AF_INET)
-			printf("Listen on: ipv4: %s, port: %d\n", ip, p);
-        else if (rp->ai_family == AF_INET6)
-			printf("Listen on: ipv6: %s, port: %d\n", ip, p);
-        else
-            printf("Listen on: unknown family: %d\n", rp->ai_family);
-#endif
         sock = socket(rp->ai_family, rp->ai_socktype, rp->ai_protocol);
         if (sock == -1) {
-            perror("socket");
+            DEBUGP("Fail to init socket");
             --sock_num;
             continue;
         }
         v = 1;
         if (setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &v, sizeof(v)) < 0) {
-            perror("setsockopt");
+            DEBUGP("Fail to setsockopt");
             --sock_num;
             close(sock);
             continue;
         }
         if (bind(sock, rp->ai_addr, rp->ai_addrlen) < 0) {
-            perror("bind");
+            DEBUGP("Fail to bind");
             --sock_num;
             close(sock);
             continue;
         }
         if (listen(sock, MAX_LISTEN) < 0) {
-            perror("listen");
+            DEBUGP("listen");
             --sock_num;
             close(sock);
             continue;
         }
         socks[i++] = sock;
+#ifdef DEVELOPMENT
+        sockaddr2string((struct sockaddr *)rp->ai_addr, ip);
+        p = get_port((struct sockaddr *)rp->ai_addr);
+		if (rp->ai_family == AF_INET)
+			DEBUG("Listen on: ipv4: %s, port: %d", ip, p);
+        else if (rp->ai_family == AF_INET6)
+			DEBUG("Listen on: ipv6: %s, port: %d", ip, p);
+        else
+            DEBUG("Listen on: unknown family: %d", rp->ai_family);
+#endif
     }
     freeaddrinfo(result);
 
@@ -103,13 +101,13 @@ network_loop(char *address, char *port)
 
     int i, m, handle_ret;
 
-#if 1
+#ifdef DEVELOPMENT
     char ip[INET6_ADDRSTRLEN] = {0};
 #endif
 
+
     if ((sock_num = init_net(address, port, &listen_sock)) == 0) {
-        fprintf(stderr, "Fail to initial network!\n");
-        exit(EXIT_FAILURE);
+        ERROR("Fail to initial network!");
     }
 
     for (i = 0; i < FD_SETSIZE; ++i) {
@@ -130,33 +128,33 @@ network_loop(char *address, char *port)
     }
 
     if (init_handle() != 0) {
-        fprintf(stderr, "Fail to initialize handle!");
-        exit(EXIT_FAILURE);
+        ERROR("Fail to initial handle!");
     }
 
     for (;;) {
         rset = fdset;
         if (select(fd_max + 1, &rset, NULL, NULL, NULL) < 0) {
-            perror("select");
-            exit(EXIT_FAILURE);
+            FATAL_ERROR("select");
         }
         for (m = 0; m < sock_num; ++m) {
             if (FD_ISSET(listen_sock[m], &rset)) {
                 client_addrlen = sizeof(client_addr);
                 memset(&client_addr, 0, client_addrlen);
                 if ((connfd = accept(listen_sock[m], (struct sockaddr *)&client_addr, &client_addrlen)) <= 0) {
-                    perror("accept");
+                    WARNP("accept");
                 } else {
                     for (i = 0; i < FD_SETSIZE; ++i) {
                         if (connection[i].fd < 0) {
                             SET_CONNECTION(connection[i], connfd, client_addr);
+#ifdef DEVELOPMENT
                             sockaddr2string((struct sockaddr *)(connection[i].addr), ip);
-                            printf("Get connection from %s.\n", ip);
+                            DEBUG("Get connection from %s", ip);
+#endif
                             break;
                         }
                     }
                     if (i == FD_SETSIZE)
-                        fprintf(stderr, "Too many connections.");
+                        WARN("Too many connections");
                     FD_SET(connfd, &fdset);
                     if (connfd > fd_max)
                         fd_max = connfd;
@@ -170,19 +168,21 @@ network_loop(char *address, char *port)
                 continue;
             if (FD_ISSET(connection[i].fd, &rset)) {
                 handle_ret = handle(&(connection[i]));
+#ifdef DEVELOPMENT
+                sockaddr2string((struct sockaddr *)(connection[i].addr), ip);
+#endif
                 if (handle_ret < 0) {
-                    perror("read");
+                    WARN("handle_ret");
                     close(connection[i].fd);
                     RESET_CONNECTION(connection[i]);
                 } else if (handle_ret == 0) {
-                    sockaddr2string((struct sockaddr *)(connection[i].addr), ip);
-                    fprintf(stdout, "Connection with client %s is closed\n", ip);
+                    DEBUG("Connection with client %s is closed", ip);
                     FD_CLR(connection[i].fd, &fdset);
                     close(connection[i].fd);
                     RESET_CONNECTION(connection[i]);
                 } else {
                     FD_CLR(connection[i].fd, &fdset);
-                    fprintf(stdout, "Close the connection with client %s\n", ip);
+                    DEBUG("Close the connection with client %s", ip);
                     close(connection[i].fd);
                     RESET_CONNECTION(connection[i]);
                 }
@@ -211,17 +211,15 @@ sockaddr2string(struct sockaddr *sa, char *address)
     if (sa->sa_family == AF_INET) {
         server = (struct sockaddr_in *)sa;
         if (inet_ntop(sa->sa_family, &(server->sin_addr), address, INET_ADDRSTRLEN) == NULL) {
-            perror("inetV4_ntop");
-            return -1;
+            RET_ERRORP(-1, "inetV4_ntop");
         }
     } else if (sa->sa_family == AF_INET6) {
         server6 = (struct sockaddr_in6 *)sa;
         if (inet_ntop(sa->sa_family, &(server6->sin6_addr), address, INET6_ADDRSTRLEN) == NULL) {
-            perror("inetV6_ntop");
-            return -1;
+            RET_ERRORP(-1, "inetV6_ntop");
         }
     } else {
-        printf("family: %d\n", sa->sa_family);
+        DEBUG("Family: %d\n", sa->sa_family);
         return -1;
     }
     return 0;
@@ -239,7 +237,7 @@ get_port(struct sockaddr *sa)
         server6 = (struct sockaddr_in6 *)sa;
         return ntohs(server6->sin6_port);
     } else {
-        printf("family: %d\n", sa->sa_family);
+        DEBUG("Family: %d\n", sa->sa_family);
         return -1;
     }
     return -1;

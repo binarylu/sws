@@ -86,7 +86,7 @@ response_init(_response *resp)
     resp->header_entry = NULL;
     resp->body = NULL;
     resp->is_cgi = 0;
-    response_addfield(resp, "Server", 6, "sws", 3);
+    response_addfield(resp, "Server", 6, "sws 1.0", 7);
 }
 
 void
@@ -149,7 +149,6 @@ int
 init_log(const char *filename)
 {
     if ((g_log = fopen(filename, "a")) == NULL) {
-        perror("Fail to open log file");
         return -1;
     }
     return 0;
@@ -238,6 +237,8 @@ int
 validate_path(const char *path)
 {
     struct stat st;
+    if (path == NULL)
+        return 0;
     return stat(path, &st) == 0 && S_ISDIR(st.st_mode);
 }
 
