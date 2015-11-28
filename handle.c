@@ -23,7 +23,9 @@ handle(_connection *connection)
     _request *request;
     _response *response;
 
+#if DEVELOPMENT
     _header_entry *p;
+#endif
 
     if (connection->buf == NULL) {
         connection->buf = (char *)malloc(sizeof(char) * BUFFSIZE);
@@ -44,8 +46,10 @@ handle(_connection *connection)
             get_date_rfc1123(request_time, sizeof(request_time));
             sockaddr2string((struct sockaddr *)(connection->addr), ip);
 
-            /*printf("Request from %s->\n%s\n", ip, connection->buf);
-            printf("=============================\n\n");*/
+#if DEVELOPMENT
+            printf("Request from %s->\n%s\n", ip, connection->buf);
+            printf("=============================\n\n");
+#endif
 
             request = connection->request;
             response = connection->response;
@@ -57,12 +61,14 @@ handle(_connection *connection)
                 return -1;
             }
 
-            /*printf("%d %s %s\n", request->method, request->uri, request->version);
+#if DEVELOPMENT
+            printf("%d %s %s\n", request->method, request->uri, request->version);
             p = request->header_entry;
             while (p) {
                 printf("%s =====>>>>>> %s\n", p->key, p->value);
                 p = p->next;
-            }*/
+            }
+#endif
 
             switch (get_request_type(request)) {
                 case REQ_CGI:
@@ -79,8 +85,10 @@ handle(_connection *connection)
 
             char *resp = encode_response(response);
 
+#if DEVELOPMENT
             printf("=============================\n\n");
-            /*printf("Response to %s->\n%s\n", ip, response->body);*/
+            printf("Response to %s->\n%s\n", ip, response->body);
+#endif
             if ((nwrite = send(connection->fd, resp, strlen(resp), 0)) < 0) {
                 fprintf(stderr, "send failed\n");
             }
@@ -90,7 +98,8 @@ handle(_connection *connection)
                     request->method == GET_METHOD ? "GET" :
                     (request->method == HEAD_METHOD ? "HEAD" : "NONE"),
                     request->uri, request->version,
-                    response->code, strlen(response->body));
+                    response->code,
+                    strlen(response->body == NULL ? "" : response->body));
 
             request_clear(request);
             response_clear(response);
