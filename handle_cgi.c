@@ -8,6 +8,8 @@ handle_cgi(/*Input*/const _request *req, /*Output*/_response *resp)
 {
     char *cgipath = get_absolute_path(req->uri, REQ_CGI);
     struct stat pathstat;
+    int pipefd[2];
+    pid_t pid = fork();
 
     /* no file existed, respond 404 */
     if(stat(cgipath, &pathstat) == -1) {
@@ -29,19 +31,18 @@ handle_cgi(/*Input*/const _request *req, /*Output*/_response *resp)
         return 0;
     }
 
-    int pipefd[2];
     if (pipe(pipefd) == -1) {
         perror("pipe");
         exit(1);
     }
-    pid_t pid = fork();
+
     if (pid == -1) {
         perror("fork");
         exit(1);
     } else if (pid == 0) {
         while ((dup2(pipefd[1], STDOUT_FILENO) == -1) && (errno == EINTR)) {}
         close(pipefd[0]);
-        execl(cgipath, (char*)0);
+        execl(cgipath, "", NULL);
         perror("execl");
         _exit(1);
     } else {

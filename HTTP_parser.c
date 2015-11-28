@@ -71,7 +71,7 @@ static const char *
 digit(const char *str, int count)
 {
     for (; count > 0; --count) {
-        if (isdigit(*str))
+        if (isdigit((int)*str))
             ++str;
         else {
             str = NULL;
