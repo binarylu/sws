@@ -58,6 +58,8 @@ int main(int argc, char *argv[])
         fprintf(stderr, "Invalid port number\n");
         exit(EXIT_FAILURE);
     }
+
+#if DEVELOPMENT
     /*printf("res: %d\n\n", validate_path_security(argv[1], REQ_STATIC));*/
 
     printf("dir = %s\n", g_dir);
@@ -65,6 +67,7 @@ int main(int argc, char *argv[])
     printf("logfile = %s\n", logfile);
     printf("ip = %s\n", ip);
     printf("port = %s\n==========\n", port);
+#endif
 
     if (g_debug == 0)
         if (daemon(0, 0) != 0) {

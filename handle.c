@@ -73,11 +73,15 @@ handle(_connection *connection)
             switch (get_request_type(request)) {
                 case REQ_CGI:
                     handle_cgi(request, response);
+#if DEVELOPMENT
                     printf("cgi abs path: %s\n", get_absolute_path(request->uri, REQ_CGI));
+#endif
                     break;
                 case REQ_STATIC:
                     handle_static(request, response);
+#if DEVELOPMENT
                     printf("static abs path: %s\n", get_absolute_path(request->uri, REQ_STATIC));
+#endif
                     break;
                 case REQ_OTHER: handle_other(request, response); break;
                 default: handle_other(request, response);
