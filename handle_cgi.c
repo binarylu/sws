@@ -9,7 +9,7 @@ handle_cgi(/*Input*/const _request *req, /*Output*/_response *resp)
     char *cgipath = get_absolute_path(req->uri, REQ_CGI);
     struct stat pathstat;
     int pipefd[2];
-    pid_t pid = fork();
+    pid_t pid;
 
     /* no file existed, respond 404 */
     if(stat(cgipath, &pathstat) == -1) {
@@ -35,7 +35,8 @@ handle_cgi(/*Input*/const _request *req, /*Output*/_response *resp)
         perror("pipe");
         exit(1);
     }
-
+    
+    pid = fork();
     if (pid == -1) {
         perror("fork");
         exit(1);
