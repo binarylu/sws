@@ -16,7 +16,7 @@
 #include <string.h>
 #include <ctype.h>
 
-//#define DEVELOPMENT 1
+#define DEVELOPMENT 1
 
 extern int g_debug;
 extern FILE *g_log;

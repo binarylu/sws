@@ -152,6 +152,7 @@ init_log(const char *filename)
     if ((g_log = fopen(filename, "a")) == NULL) {
         return -1;
     }
+    setbuf(g_log, NULL);
     return 0;
 }
 

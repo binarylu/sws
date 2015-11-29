@@ -38,20 +38,29 @@ int main(int argc, char *argv[])
     argc -= optind;
     argv += optind;
     if (argc == 0) {
-        ERROR("Please provide dir!");
+        fprintf(stderr, "Please provide dir!\n");
+        exit(EXIT_FAILURE);
     }
     g_dir = argv[0];
     if (!validate_path(g_dir)) {
-        ERROR("%s is not a validated directory!", g_dir);
+        fprintf(stderr, "%s is not a validated directory!\n", g_dir);
+        exit(EXIT_FAILURE);
     }
     if (g_dir_cgi != NULL && !validate_path(g_dir_cgi)) {
-        ERROR("%s is not a validated CGI directory!", g_dir_cgi);
+        fprintf(stderr, "%s is not a validated CGI directory!\n", g_dir_cgi);
+        exit(EXIT_FAILURE);
     }
     if (logfile != NULL && validate_path(logfile)) {
-        ERROR("%s is not a validated file!", logfile);
+        fprintf(stderr, "%s is not a validated file!\n", logfile);
+        exit(EXIT_FAILURE);
     }
+    if (logfile != NULL)
+        if (init_log(logfile) != 0) {
+            error(-1, errno, "Fail to open log file!");
+        }
     if (!validate_port(port)) {
-        ERROR("Invalid port number!");
+        fprintf(stderr, "Invalid port number!\n");
+        exit(EXIT_FAILURE);
     }
 
     DEBUG("========== arguments =========");
@@ -63,15 +72,10 @@ int main(int argc, char *argv[])
 
 #if 1
     if (g_debug == 0)
-        if (daemon(0, 0) != 0) {
+        if (daemon(1, 0) != 0) {
             FATAL_ERROR("Fail to daemon!");
         }
 #endif
-
-    if (logfile != NULL)
-        if (init_log(logfile) != 0) {
-            error(-1, errno, "Fail to open log file!");
-        }
 
     network_loop(ip, port);
 
