@@ -37,7 +37,9 @@ handle(_connection *connection)
         return 0;
     else {
         connection->pos += nread;
-        if (strncmp(connection->buf + strlen(connection->buf) - 2, "\r\n", 2) == 0) {
+        if (strncmp(connection->buf + strlen(connection->buf) - 2, "\r\n", 2) != 0) {
+            return 2;
+        } else {
             get_date_rfc1123(request_time, sizeof(request_time));
             sockaddr2string((struct sockaddr *)(connection->addr), ip);
 
@@ -94,8 +96,6 @@ handle(_connection *connection)
                     response->code,
                     strlen(response->body == NULL ? "" : response->body));
 
-            request_clear(request);
-            response_clear(response);
             free(connection->buf);
         }
     }

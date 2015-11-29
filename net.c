@@ -153,7 +153,7 @@ network_loop(char *address, char *port)
                             break;
                         }
                     }
-                    if (i == FD_SETSIZE)
+                    if (i >= FD_SETSIZE)
                         WARN("Too many connections");
                     FD_SET(connfd, &fdset);
                     if (connfd > fd_max)
@@ -180,7 +180,7 @@ network_loop(char *address, char *port)
                     FD_CLR(connection[i].fd, &fdset);
                     close(connection[i].fd);
                     RESET_CONNECTION(connection[i]);
-                } else {
+                } else if (handle_ret == 1) {
                     FD_CLR(connection[i].fd, &fdset);
                     DEBUG("Close the connection with client %s", ip);
                     close(connection[i].fd);

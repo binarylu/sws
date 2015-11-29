@@ -8,10 +8,8 @@ handle_static(/*Input*/_request *request, /*Output*/_response *response)
     char time_buff[MAX_TIME_SIZE];
     struct tm *p;
 
-    response->version = generate_str(VERSION);
     get_date_rfc1123(time_buff, MAX_TIME_SIZE);
     response_addfield(response, "Date", 4, time_buff, strlen(time_buff));
-    response_addfield(response, "Server", 6, SERVER_NAME, SERVER_NAME_SIZE);
     request->uri = get_absolute_path(request->uri, REQ_STATIC);
 
     if (stat(request->uri, &req_stat) < 0) {
