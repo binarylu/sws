@@ -16,7 +16,7 @@
 #include <string.h>
 #include <ctype.h>
 
-#define DEVELOPMENT 1
+//#define DEVELOPMENT 1
 
 extern int g_debug;
 extern FILE *g_log;
@@ -100,6 +100,7 @@ char *get_absolute_path(const char *path, _request_type req_type);
         fprintf(stderr, #type": "fmt"\n", ##arg); \
     } else if (g_log != NULL) { \
         fprintf(g_log, #type": "fmt"\n", ##arg); \
+        fflush(g_log); \
     } \
 } while(0)
 
@@ -108,6 +109,7 @@ char *get_absolute_path(const char *path, _request_type req_type);
         fprintf(stderr, #type": "fmt": %s\n", ##arg, strerror(errno)); \
     } else if (g_log != NULL) { \
         fprintf(g_log, #type": "fmt": %s\n", ##arg, strerror(errno)); \
+        fflush(g_log); \
     } \
 } while(0)
 

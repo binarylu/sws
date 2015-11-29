@@ -4,13 +4,15 @@ int
 handle_static(/*Input*/_request *request, /*Output*/_response *response)
 {
     struct stat req_stat;
-    char str[20];
     char time_buff[MAX_TIME_SIZE];
     struct tm *p;
+    char *uri;
 
     get_date_rfc1123(time_buff, MAX_TIME_SIZE);
     response_addfield(response, "Date", 4, time_buff, strlen(time_buff));
+    uri = request->uri;
     request->uri = get_absolute_path(request->uri, REQ_STATIC);
+    free(uri);
 
     if (stat(request->uri, &req_stat) < 0) {
         if (errno == ENOENT) {
@@ -53,8 +55,6 @@ handle_static(/*Input*/_request *request, /*Output*/_response *response)
     strftime(time_buff, MAX_TIME_SIZE, "%a, %d %b %Y %T GMT", p);
     response_addfield(response, "Last-Modified", 13, time_buff, strlen(time_buff));
 
-    sprintf(str, "%d", (int)(req_stat.st_size));
-    response_addfield(response, "Content-Length", 14, str, strlen(str));
 
     if (S_ISREG(req_stat.st_mode)) {
         if (request->method == HEAD_METHOD)
@@ -109,12 +109,15 @@ set_file(const _request *request, const struct stat* req_stat, _response *respon
 {
     int req_fd;
     int nums;
+    char str[20];
     const char* mime = NULL;
     char buf[BUFF_SIZE];
     int body_size;
 
     mime = getMIME(request->uri);
     response_addfield(response, "Content-Type", 12, mime, strlen(mime));
+    sprintf(str, "%d", (int)(req_stat->st_size));
+    response_addfield(response, "Content-Length", 14, str, strlen(str));
 
     body_size = req_stat->st_size;
     response->body = (char *)malloc(body_size+1);
@@ -144,7 +147,7 @@ set_directory(_request *request, struct stat* req_stat, _response *response)
     DIR *dirp;
     struct dirent *dp;
     char *path;
-    const char* mime;
+    char str[20];
 
     dirp = opendir(request->uri);
     while ((dp = readdir(dirp)) != NULL) {
@@ -160,10 +163,14 @@ set_directory(_request *request, struct stat* req_stat, _response *response)
     }
     (void)closedir(dirp);
 
-    mime = getMIME(request->uri);
-    response_addfield(response, "Content-Type", 12, mime, strlen(mime));
+    path = request->uri;
+    if (path[strlen(path)-1] == '/')
+        path[strlen(path)-1] = '\0';
+    response_addfield(response, "Content-Type", 12, "text/html", 9);
     if (request->method != HEAD_METHOD)
        response->body = generate_index(request->uri);
+    sprintf(str, "%d", (int)strlen(response->body));
+    response_addfield(response, "Content-Length", 14, str, strlen(str));
 
     response->code = 200;
     generate_desc(response);

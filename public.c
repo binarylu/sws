@@ -64,6 +64,7 @@ request_addfield(_request *req, const char *key,
     assert(strncpy(node->value, val, vallen));
     node->key[keylen] = '\0';
     node->value[vallen] = '\0';
+    node->next = NULL;
 
     last = req->header_entry;
     if (last == NULL)
@@ -299,7 +300,11 @@ get_absolute_path(const char *path, _request_type req_type)
 
     if (req_type == REQ_CGI) {
         path += strlen("/cgi-bin");
-        snprintf(abs_path, PATH_MAX, "%s%s", g_dir_cgi, path);
+        if (g_dir_cgi[strlen(g_dir_cgi)-1] == '/' && path[0] == '/')
+            snprintf(abs_path, PATH_MAX, "%s%s", g_dir_cgi, path+1);
+        else
+            snprintf(abs_path, PATH_MAX, "%s%s", g_dir_cgi, path);
+
     } else if (req_type == REQ_STATIC) {
         username = seperate_string(path, "/", &username_len, 1);
         --username_len;
@@ -309,7 +314,10 @@ get_absolute_path(const char *path, _request_type req_type)
             snprintf(abs_path + 6 + username_len,
                     PATH_MAX - (6 + username_len), "/sws%s", path);
         } else {
-            snprintf(abs_path, PATH_MAX, "%s%s", g_dir, path);
+            if (g_dir[strlen(g_dir)-1] == '/' && path[0] == '/')
+                snprintf(abs_path, PATH_MAX, "%s%s", g_dir, path+1);
+            else 
+                snprintf(abs_path, PATH_MAX, "%s%s", g_dir, path);
         }
     } else {
         return NULL;
