@@ -9,7 +9,7 @@
 #define DEFAULT_PORT "8080"
 
 int g_debug = 0;
-FILE *g_log = NULL;
+const char *g_log = NULL;
 const char *g_dir = NULL;
 const char *g_dir_cgi = NULL;
 
@@ -18,7 +18,6 @@ void usage();
 int main(int argc, char *argv[])
 {
     char *ip = NULL;
-    char *logfile = NULL;
     char *port = DEFAULT_PORT;
     int opt;
     while ((opt = getopt(argc, argv, "c:dhi:l:p:")) != -1) {
@@ -27,7 +26,7 @@ int main(int argc, char *argv[])
             case 'd': g_debug = 1; break;
             case 'h': usage(); exit(EXIT_SUCCESS); break;
             case 'i': ip = optarg; break;
-            case 'l': logfile = optarg; break;
+            case 'l': g_log = optarg; break;
             case 'p': port = optarg; break;
             case '?':
             default:
@@ -50,12 +49,12 @@ int main(int argc, char *argv[])
         fprintf(stderr, "%s is not a validated CGI directory!\n", g_dir_cgi);
         exit(EXIT_FAILURE);
     }
-    if (logfile != NULL && validate_path(logfile)) {
-        fprintf(stderr, "%s is not a validated file!\n", logfile);
+    if (g_log != NULL && validate_path(g_log)) {
+        fprintf(stderr, "%s is not a validated file!\n", g_log);
         exit(EXIT_FAILURE);
     }
-    if (logfile != NULL)
-        if (init_log(logfile) != 0) {
+    if (g_log != NULL)
+        if (init_log(g_log) != 0) {
             error(-1, errno, "Fail to open log file!");
         }
     if (!validate_port(port)) {
@@ -66,7 +65,7 @@ int main(int argc, char *argv[])
     DEBUG("========== arguments =========");
     DEBUG("dir = %s", g_dir);
     DEBUG("cgi_dir = %s", g_dir_cgi);
-    DEBUG("logfile = %s", logfile);
+    DEBUG("logfile = %s", g_log);
     DEBUG("ip = %s", ip);
     DEBUG("port = %s", port);
 
@@ -79,8 +78,8 @@ int main(int argc, char *argv[])
 
     network_loop(ip, port);
 
-    if (logfile != NULL)
-        close_log();
+    /*if (logfile != NULL)
+        close_log();*/
     return 0;
 }
 

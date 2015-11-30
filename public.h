@@ -16,10 +16,10 @@
 #include <string.h>
 #include <ctype.h>
 
-#define DEVELOPMENT 1
+/*#define DEVELOPMENT 1*/
 
 extern int g_debug;
-extern FILE *g_log;
+extern const char *g_log;
 extern const char *g_dir;
 extern const char *g_dir_cgi;
 
@@ -70,7 +70,7 @@ int response_addfield(_response *resp, const char *key,
         int keylen, const char *val, int vallen);
 
 int init_log(const char *filename);
-void close_log();
+/*void close_log();*/
 
 void get_year_mon_day(int* year, int* mon, int* day);
 void get_date_rfc1123(char *buf, size_t len);
@@ -87,11 +87,19 @@ int validate_path_security(const char *path, _request_type req_type);
  */
 char *get_absolute_path(const char *path, _request_type req_type);
 
+#define LOG2FILE(fmt, arg...) do { \
+    FILE *f = NULL; \
+    if ((f = fopen(g_log, "a")) != NULL) { \
+        fprintf(f, fmt, ##arg); \
+        fclose(f); \
+    } \
+} while(0)
+
 #define LOG(fmt, arg...) do { \
     if (g_debug == 1) { \
         fprintf(stdout, fmt"\n", ##arg); \
     } else if (g_log != NULL) { \
-        fprintf(g_log, fmt"\n", ##arg); \
+        LOG2FILE(fmt"\n", ##arg); \
     } \
 } while(0)
 
@@ -99,8 +107,7 @@ char *get_absolute_path(const char *path, _request_type req_type);
     if (g_debug == 1) { \
         fprintf(stderr, #type": "fmt"\n", ##arg); \
     } else if (g_log != NULL) { \
-        fprintf(g_log, #type": "fmt"\n", ##arg); \
-        fflush(g_log); \
+        LOG2FILE(#type": "fmt"\n", ##arg); \
     } \
 } while(0)
 
@@ -108,8 +115,7 @@ char *get_absolute_path(const char *path, _request_type req_type);
     if (g_debug == 1) { \
         fprintf(stderr, #type": "fmt": %s\n", ##arg, strerror(errno)); \
     } else if (g_log != NULL) { \
-        fprintf(g_log, #type": "fmt": %s\n", ##arg, strerror(errno)); \
-        fflush(g_log); \
+        LOG2FILE(g_log, #type": "fmt": %s\n", ##arg, strerror(errno)); \
     } \
 } while(0)
 

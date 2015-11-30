@@ -149,18 +149,23 @@ response_addfield(_response *resp, const char *key,
 int
 init_log(const char *filename)
 {
-    if ((g_log = fopen(filename, "a")) == NULL) {
+    FILE *f;
+    /*char t[64];*/
+    if ((f = fopen(filename, "a")) == NULL) {
         return -1;
     }
-    setbuf(g_log, NULL);
+    /*get_date_rfc1123(t, sizeof(t));
+    fprintf(f, "%s: sws starts!\n", t);*/
+    /*setbuf(g_log, NULL);*/
+    fclose(f);
     return 0;
 }
-
+/*
 void
 close_log()
 {
     fclose(g_log);
-}
+}*/
 
 void
 get_year_mon_day(int* year, int* mon, int* day)
