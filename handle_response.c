@@ -80,3 +80,46 @@ generate_str(const char* desc)
     strncpy(tmp, desc, len+1);
     return tmp;
 }
+
+
+#define code400 "<!DOCTYPE HTML PUBLIC \"-//IETF//DTD HTML 2.0//EN\">\n<html><head>\n<title>400 Bad Request</title>\n</head><body>\n<h1>Bad Request</h1>\n<p>Your browser sent a request that this server could not understand.<br />\n</p >\n</body></html>\0"
+#define code403 "<!DOCTYPE HTML PUBLIC \"-//IETF//DTD HTML 2.0//EN\">\n<html><head>\n<title>403 Forbidden</title>\n</head><body>\n<h1>403 Forbidden</h1>\n<p>Your browser sent a request that this server forbid.<br />\n</p >\n</body></html>\0"
+#define code404 "<!DOCTYPE HTML PUBLIC \"-//IETF//DTD HTML 2.0//EN\">\n<html><head>\n<title>404 Not Found</title>\n</head><body>\n<h1>404 Not Found</h1>\n<p>Your browser sent a request that this server could not find.<br />\n</p >\n</body></html>\0"
+#define code500 "<!DOCTYPE HTML PUBLIC \"-//IETF//DTD HTML 2.0//EN\">\n<html><head>\n<title>500 Internal Server Error</title>\n</head><body>\n<h1>500 Internal Server Error</h1>\n<p>Your browser sent a request that this server get error.<br />\n</p >\n</body></html>\0"
+
+int
+handleError(_response* response) {
+    char str[20];
+    switch(response->code) {
+        case 400:
+            response->body = (char *)malloc(strlen(code400));
+            strcpy(response->body, code400);
+            sprintf(str, "%d", (int)strlen(response->body));
+            response_addfield(response, "Content-Length", 14, str, strlen(str));
+            response_addfield(response, "Content-Type", 12, "text/html", 9);
+            break;
+        case 403:
+            response->body = (char *)malloc(strlen(code403));
+            strcpy(response->body, code400);
+            sprintf(str, "%d", (int)strlen(response->body));
+            response_addfield(response, "Content-Length", 14, str, strlen(str));
+            response_addfield(response, "Content-Type", 12, "text/html", 9);
+            break;
+        case 404:
+            response->body = (char *)malloc(strlen(code404));
+            strcpy(response->body, code400);
+            sprintf(str, "%d", (int)strlen(response->body));
+            response_addfield(response, "Content-Length", 14, str, strlen(str));
+            response_addfield(response, "Content-Type", 12, "text/html", 9);
+            break;
+        case 500:
+            response->body = (char *)malloc(strlen(code500));
+            strcpy(response->body, code400);
+            sprintf(str, "%d", (int)strlen(response->body));
+            response_addfield(response, "Content-Length", 14, str, strlen(str));
+            response_addfield(response, "Content-Type", 12, "text/html", 9);
+            break;
+
+    }
+    return 0;
+}
