@@ -125,14 +125,30 @@ _weekday(const char *str)
     return i < 7 ? str : NULL;
 }
 
+/* test if num is in range [low, high] */
+static int
+inrange(const char *num, int ndigit, int low, int high)
+{
+    static char buffer[16];
+    int val;
+
+    strncpy(buffer, num, ndigit);
+    buffer[ndigit] = '\0';
+    val = atoi(buffer);
+    return (val >= low && val <= high);
+}
+
 static const char *
 _time(const char *str)
 {
     if ((str = digit(str, 2)) != NULL &&
+            inrange(str, 2, 0, 23) &&
             try_match(&str, ":", 1) &&
             (str = digit(str, 2)) != NULL &&
+            inrange(str, 2, 0, 59) &&
             try_match(&str, ":", 1) &&
-            (str = digit(str, 2)) != NULL)
+            (str = digit(str, 2)) != NULL &&
+            inrange(str, 2, 0, 59))
         return str;
     else
         return NULL;

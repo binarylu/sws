@@ -10,6 +10,13 @@ handle_static(/*Input*/_request *request, /*Output*/_response *response)
 
     get_date_rfc1123(time_buff, MAX_TIME_SIZE);
     response_addfield(response, "Date", 4, time_buff, strlen(time_buff));
+
+    if (strcmp(request->version, "HTTP/1.0") != 0) {
+        response->code = 400;
+        generate_desc(response);
+        return -1;
+    }
+
     uri = request->uri;
     request->uri = get_absolute_path(request->uri, REQ_STATIC);
     free(uri);
