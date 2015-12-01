@@ -79,8 +79,6 @@ handle_static(/*Input*/_request *request, /*Output*/_response *response)
 
 
     if (S_ISREG(req_stat.st_mode)) {
-        if (request->method == HEAD_METHOD)
-            return 0;
         if (set_file(request, &req_stat, response) == 0)
             return 0;
     } else if (S_ISDIR(req_stat.st_mode)) {
@@ -142,6 +140,12 @@ set_file(const _request *request, const struct stat* req_stat, _response *respon
     sprintf(str, "%d", (int)(req_stat->st_size));
     response_addfield(response, "Content-Length", 14, str, strlen(str));
 
+    if (request->method == HEAD_METHOD){
+        response->code = 200;
+        generate_desc(response);
+        return 0;
+    }
+
     body_size = req_stat->st_size;
     response->body = (char *)malloc(body_size+1);
     (response->body)[0] = '\0';
@@ -190,10 +194,15 @@ set_directory(_request *request, struct stat* req_stat, _response *response)
     if (path[strlen(path)-1] == '/')
         path[strlen(path)-1] = '\0';
     response_addfield(response, "Content-Type", 12, "text/html", 9);
-    if (request->method != HEAD_METHOD)
-       response->body = generate_index(request->uri);
+    response->body = generate_index(request->uri);
     sprintf(str, "%d", (int)strlen(response->body));
     response_addfield(response, "Content-Length", 14, str, strlen(str));
+
+    if (request->method == HEAD_METHOD){
+        free(response->body);
+        response->body = NULL;
+    }
+        
 
     response->code = 200;
     generate_desc(response);
