@@ -68,7 +68,7 @@ requests() {
 
 
 uris() {
-	for U in "${URIS}"; do
+	for U in ${URIS}; do
 		echo "=> GET '${U}' HTTP/1.0"
 		printf "GET ${U} HTTP/1.0\r\n\r\n"  | nc ${SERVER} ${PORT}
 	done
@@ -86,7 +86,7 @@ protocols
 requests
 uris
 
-pid=$$
-( sleep 300; kill -s ALRM $pid ) &
+#pid=$$
+#( sleep 300; kill -s ALRM $pid ) &
 
 telnet ${SERVER} ${PORT} >/dev/null
