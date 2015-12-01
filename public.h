@@ -25,7 +25,7 @@ extern const char *g_dir_cgi;
 
 typedef enum { NONE_METHOD, GET_METHOD, HEAD_METHOD /*, POST_METHOD*/ } _method;
 typedef enum { REQ_CGI, REQ_STATIC, REQ_OTHER } _request_type;
-typedef enum { NO_ERR, REQ_LINE_ERR, GENERAL_HEADER_ERR, REQUEST_HEADER_ERR, SYSTEM_ERR } _request_err;
+typedef enum { NO_ERR, REQ_LINE_ERR, FORMAT_ERR, SYSTEM_ERR } _request_err;
 
 typedef struct __header_entry {
     char *key;
