@@ -14,6 +14,7 @@ handle_static(/*Input*/_request *request, /*Output*/_response *response)
     if (strcmp(request->version, "HTTP/1.0") != 0) {
         response->code = 400;
         generate_desc(response);
+        handleError(response);
         return -1;
     }
 
@@ -32,6 +33,7 @@ handle_static(/*Input*/_request *request, /*Output*/_response *response)
             response->code = 400;
             generate_desc(response);
         }
+        handleError(response);
         return 0;
     }
 
@@ -43,12 +45,14 @@ handle_static(/*Input*/_request *request, /*Output*/_response *response)
             response->code = 400;
             generate_desc(response);
         }
+        handleError(response);
         return 0;
     }
 
     if (validate_path_security(request->uri, REQ_STATIC) == 0){
         response->code = 403;
         generate_desc(response);
+        handleError(response);
         return 0;
     }
 
@@ -75,6 +79,7 @@ handle_static(/*Input*/_request *request, /*Output*/_response *response)
 
     response->code = 500;
     generate_desc(response);
+    handleError(response);
     return -1;
 }
 
