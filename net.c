@@ -173,6 +173,7 @@ network_loop(char *address, char *port)
 #endif
                 if (handle_ret < 0) {
                     WARN("handle_ret");
+                    FD_CLR(connection[i].fd, &fdset);
                     close(connection[i].fd);
                     RESET_CONNECTION(connection[i]);
                 } else if (handle_ret == 0) {
@@ -181,8 +182,8 @@ network_loop(char *address, char *port)
                     close(connection[i].fd);
                     RESET_CONNECTION(connection[i]);
                 } else if (handle_ret == 1) {
-                    FD_CLR(connection[i].fd, &fdset);
                     DEBUG("Close the connection with client %s", ip);
+                    FD_CLR(connection[i].fd, &fdset);
                     close(connection[i].fd);
                     RESET_CONNECTION(connection[i]);
                 }
