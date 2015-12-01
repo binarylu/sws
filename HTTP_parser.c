@@ -40,7 +40,7 @@ try_capture(const char **pstr, char c)
             buf[count] = '\0';
             *pstr = loc;
         } else
-            perror("can't alllocate memory");
+            WARNP("HTTP parser: can't allocate memory");
     }
     return buf;
 }
@@ -252,13 +252,24 @@ static const char *
 general_header(const char *str, _request *req)
 {
     const char *end;
-    if (try_match(&str, "Date:" SP_STR, 6) &&
-            (end = http_date(str)) != NULL &&
-            request_addfield(req, "Date", 4, str, end - str) == 0 &&
-            try_match(&end, CRLF, 2))
-        return end;
-    else
+
+    if (!try_match(&str, "Date:" SP_STR, 6)) {
         return NULL;
+    }
+    if ((end = http_date(str)) != NULL) {
+        req->errcode = FORMAT_ERR;
+        return NULL;
+    }
+    if (request_addfield(req, "Date", 4, str, end - str) == -1) {
+        req->errcode = SYSTEM_ERR;;
+        return NULL;
+    }
+    if (!try_match(&end, CRLF, 2)) {
+        req->errcode = FORMAT_ERR;
+        return NULL;
+    }
+
+    return end;
 }
 
 static const char *
@@ -271,13 +282,24 @@ static const char *
 request_header(const char *str, _request *req)
 {
     const char *end;
-    if (try_match(&str, "If-Modified-Since:" SP_STR, 19) &&
-            (end = if_modified_since(str)) != NULL &&
-            request_addfield(req, "If-Modified-Since", 17, str, end - str) == 0 &&
-            try_match(&end, CRLF, 2))
-        return end;
-    else
+
+    if (!try_match(&str, "If-Modified-Since:" SP_STR, 19)) {
         return NULL;
+    }
+    if ((end = if_modified_since(str)) != NULL) {
+        req->errcode = FORMAT_ERR;
+        return NULL;
+    }
+    if (request_addfield(req, "If-Modified-Since", 17, str, end - str) == -1) {
+        req->errcode = SYSTEM_ERR;;
+        return NULL;
+    }
+    if (!try_match(&end, CRLF, 2)) {
+        req->errcode = FORMAT_ERR;
+        return NULL;
+    }
+
+    return end;
 }
 
 static const char *
@@ -299,10 +321,13 @@ decode_request(/*Input*/const char *content, /*Output*/_request *request)
     const char *progress;
     int more;
 
-    if ((progress = request_line(content, request)) != NULL)
+    request->errcode = NO_ERR;
+    if ((progress = request_line(content, request)) != NULL) {
         content = progress;
-    else
-        return -1;
+    } else {
+        request->errcode = REQ_LINE_ERR;
+        return 0;
+    }
     do {
         more = 0;
         if ((progress = general_header(content, request)) != NULL) {
@@ -322,7 +347,8 @@ decode_request(/*Input*/const char *content, /*Output*/_request *request)
         return 0;
     else {
         request_clear(request);
-        return -1;
+        request->errcode = FORMAT_ERR;
+        return 0;
     }
 }
 
@@ -357,14 +383,14 @@ encode_response(/*Input*/const _response *response)
     length += 1;
 
     if ((content = (char *)malloc(length)) == NULL) {
-        perror("can't allocate memory");
+        WARNP("HTTP parser: can't allocate memory");
         return NULL;
     }
     pos = content;
 
     if ((count = snprintf(pos, length, "%s %u %s\r\n",
             response->version, response->code, response->desc)) < 0) {
-        perror("write request error");
+        WARN("HTTP parser: write response error");
         free(content);
         return NULL;
     }
@@ -375,7 +401,7 @@ encode_response(/*Input*/const _response *response)
     while (header != NULL) {
         if ((count = snprintf(pos, length, "%s: %s\r\n",
                         header->key, header->value)) < 0) {
-            perror("write request error");
+            WARN("HTTP parser: write response error");
             free(content);
             return NULL;
         }
@@ -386,7 +412,7 @@ encode_response(/*Input*/const _response *response)
 
     if (!response->is_cgi) {
         if ((count = snprintf(pos, length, "\r\n")) < 0) {
-            perror("write request error");
+            WARN("HTTP parser: write response error");
             free(content);
             return NULL;
         }
@@ -397,7 +423,7 @@ encode_response(/*Input*/const _response *response)
 
     if (response->body != NULL) {
         if(snprintf(pos, length, "%s", response->body) < 0) {
-            perror("write request error");
+            WARN("HTTP parser: write response error");
             free(content);
             return NULL;
         }
