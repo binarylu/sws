@@ -38,7 +38,7 @@ typedef struct __request {
     char *uri;
     char *version;
     _header_entry *header_entry;
-    _request_err errno;
+    _request_err errcode;
 } _request;
 
 typedef struct __response {

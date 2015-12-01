@@ -22,6 +22,7 @@ request_init(_request *req)
     req->uri = NULL;
     req->version = NULL;
     req->header_entry = NULL;
+    req->errcode = NO_ERR;
 }
 
 void
