@@ -40,7 +40,7 @@ try_capture(const char **pstr, char c)
             buf[count] = '\0';
             *pstr = loc;
         } else
-            perror("can't alllocate memory");
+            WARNP("HTTP parser: can't allocate memory");
     }
     return buf;
 }
@@ -383,14 +383,14 @@ encode_response(/*Input*/const _response *response)
     length += 1;
 
     if ((content = (char *)malloc(length)) == NULL) {
-        perror("can't allocate memory");
+        WARNP("HTTP parser: can't allocate memory");
         return NULL;
     }
     pos = content;
 
     if ((count = snprintf(pos, length, "%s %u %s\r\n",
             response->version, response->code, response->desc)) < 0) {
-        perror("write request error");
+        WARN("HTTP parser: write response error");
         free(content);
         return NULL;
     }
@@ -401,7 +401,7 @@ encode_response(/*Input*/const _response *response)
     while (header != NULL) {
         if ((count = snprintf(pos, length, "%s: %s\r\n",
                         header->key, header->value)) < 0) {
-            perror("write request error");
+            WARN("HTTP parser: write response error");
             free(content);
             return NULL;
         }
@@ -412,7 +412,7 @@ encode_response(/*Input*/const _response *response)
 
     if (!response->is_cgi) {
         if ((count = snprintf(pos, length, "\r\n")) < 0) {
-            perror("write request error");
+            WARN("HTTP parser: write response error");
             free(content);
             return NULL;
         }
@@ -423,7 +423,7 @@ encode_response(/*Input*/const _response *response)
 
     if (response->body != NULL) {
         if(snprintf(pos, length, "%s", response->body) < 0) {
-            perror("write request error");
+            WARN("HTTP parser: write response error");
             free(content);
             return NULL;
         }
