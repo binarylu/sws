@@ -119,5 +119,7 @@ handleError(_response* response) {
             response_addfield(response, "Content-Length", 14, str, strlen(str));
             response_addfield(response, "Content-Type", 12, "text/html", 9);
             break;
+
     }
+    return 0;
 }

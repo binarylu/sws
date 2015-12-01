@@ -17,6 +17,17 @@ handle_static(/*Input*/_request *request, /*Output*/_response *response)
         handleError(response);
         return -1;
     }
+    if (request->errcode != NO_ERR) {
+        if (request->errcode == SYSTEM_ERR) {
+            response->code = 500;
+            generate_desc(response);
+        } else {
+            response->code = 400;
+            generate_desc(response);
+        }
+        handleError(response);
+        return 0;
+    }
 
     uri = request->uri;
     request->uri = get_absolute_path(request->uri, REQ_STATIC);
