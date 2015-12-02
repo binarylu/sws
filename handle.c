@@ -19,6 +19,8 @@ handle(_connection *connection)
 {
     char ip[INET6_ADDRSTRLEN];
     char request_time[64];
+    const char *request_line = NULL;
+    size_t request_line_len;
     int nread, nwrite;
     _request *request;
     _response *response;
@@ -90,12 +92,12 @@ handle(_connection *connection)
                 WARNP("Failed to send");
             }
 
-            LOG("%s %s %s %s %s %u %ld", ip,
+            request_line = seperate_string(connection->buf, "\r", &request_line_len, 0);
+            if (request_line != NULL)
+                connection->buf[request_line_len] = '\0';
+            LOG("%s %s %s %u %ld", ip,
                     request_time,
-                    request->method == GET_METHOD ? "GET" :
-                    (request->method == HEAD_METHOD ? "HEAD" : "OTHER"),
-                    request->uri == NULL ? "" : request->uri,
-                    request->version == NULL ? "" : request->version,
+                    connection->buf,
                     response->code,
                     strlen(response->body == NULL ? "" : response->body));
 
