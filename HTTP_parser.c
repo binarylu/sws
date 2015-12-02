@@ -27,13 +27,15 @@ try_match(const char **pstr, const char *match, int count)
 static char *
 try_capture(const char **pstr, char c)
 {
-    const char *loc;
+    const char *loc, *tmp;
     char *buf;
     int count;
 
     buf = NULL;
     count = 0;
     if ((loc = strchr(*pstr, c)) != NULL) {
+        if ((tmp = strchr(*pstr, CR)) != NULL && tmp < loc)
+            loc = tmp;
         count = loc - *pstr;
         if ((buf = (char *)malloc(count + 1)) != NULL) {
             strncpy(buf, *pstr, count);
