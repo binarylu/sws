@@ -45,6 +45,46 @@ try_capture(const char **pstr, char c)
     return buf;
 }
 
+/* reference: http://rosettacode.org/wiki/URL_decoding#C */
+static int
+ishex(int x)
+{
+    return (x >= '0' && x <= '9') ||
+        (x >= 'a' && x <= 'f') ||
+        (x >= 'A' && x <= 'F');
+}
+static int
+url_decode(char *url)
+{
+    char *end;
+    char *in, *out;
+    char next;
+    unsigned int tmp;
+
+    end = url + strlen(url);
+    for (in = out = url; in <= end; out++) {
+        next = *in++;
+
+        /* Ignore parameters */
+        if (next == '?')
+            break;
+
+        if (next == '+')
+            next = ' ';
+        else if (next == '%') {
+            if ((!ishex(*in++) || !ishex(*in++) ||
+                     !sscanf(in - 2, "%2x", &tmp)))
+                return -1;
+            else
+                next = (char)tmp;
+        }
+        *out = next;
+    }
+    *out = '\0';
+
+    return out - url;
+}
+
 static const char *
 request_line(const char *str, _request *req)
 {
@@ -57,11 +97,12 @@ request_line(const char *str, _request *req)
 
     if (try_match(&str, SP_STR, 1) &&
             (req->uri = try_capture(&str, SP)) != NULL &&
+            url_decode(req->uri) != -1 &&
             try_match(&str, SP_STR, 1) &&
             (req->version = try_capture(&str, CR)) != NULL &&
-            try_match(&str, CRLF, 2))
+            try_match(&str, CRLF, 2)) {
         return str;
-    else {
+    } else {
         request_clear(req);
         return NULL;
     }
