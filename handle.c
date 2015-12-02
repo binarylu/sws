@@ -97,7 +97,7 @@ handle(_connection *connection)
                     request_time,
                     connection->buf,
                     response->code,
-                    strlen(response->body == NULL ? "" : response->body));
+                    (long int)strlen(response->body == NULL ? "" : response->body));
             DEBUG("after: %s %s %s %s %s %u %ld", ip,
                     request_time,
                     request->method == GET_METHOD ? "GET" :
