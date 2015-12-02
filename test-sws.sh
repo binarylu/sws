@@ -15,7 +15,7 @@ URIS="/cgi-bin/env.cgi
 /file2
 /file space
 /file>path
-/file%20space%20%3C%20path%20%3E%20name
+/file%%20space%%20%%3C%%20path%%20%%3E%%20name
 /ls
 /notallowed
 no-leading-slash
@@ -49,7 +49,8 @@ DELETE
 BACON
 "
 protocols() {
-	for P in ${PROTOCOLS}; do
+	#for P in ${PROTOCOLS}; do
+    echo "${PROTOCOLS}" | while read P; do
 		echo "=> GET / ${P}"
 		printf "GET / ${P}\r\n\r\n" | nc ${SERVER} ${PORT}
 	done
@@ -58,7 +59,8 @@ protocols() {
 }
 
 requests() {
-	for R in ${REQUESTS}; do
+	#for R in ${REQUESTS}; do
+    echo "${REQUESTS}" | while read R; do
 		echo "=> ${R} / HTTP/1.0"
 		printf "${R} / HTTP/1.0\r\n\r\n"  | nc ${SERVER} ${PORT}
 	done
@@ -68,9 +70,9 @@ requests() {
 
 
 uris() {
-	for U in ${URIS}; do
+	#for U in ${URIS}; do
+    echo "${URIS}" | while read U; do
 		echo "=> GET ${U} HTTP/1.0"
-        U=`echo ${U} | sed 's/%/%%/g'`
 		printf "GET ${U} HTTP/1.0\r\n\r\n"  | nc ${SERVER} ${PORT}
 	done
 	echo "=> GET HTTP/1.0"

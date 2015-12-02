@@ -16,7 +16,7 @@
 #include <string.h>
 #include <ctype.h>
 
-/*#define DEVELOPMENT 1*/
+/*#define DEVELOPMENT*/
 
 extern int g_debug;
 extern const char *g_log;
@@ -100,6 +100,7 @@ char *get_absolute_path(const char *path, _request_type req_type);
 #define LOG(fmt, arg...) do { \
     if (g_debug == 1) { \
         fprintf(stdout, fmt"\n", ##arg); \
+        fflush(stdout); \
     } else if (g_log != NULL) { \
         LOG2FILE(fmt"\n", ##arg); \
     } \
@@ -108,6 +109,7 @@ char *get_absolute_path(const char *path, _request_type req_type);
 #define MSG(type, fmt, arg...) do { \
     if (g_debug == 1) { \
         fprintf(stderr, #type": "fmt"\n", ##arg); \
+        fflush(stderr); \
     } else if (g_log != NULL) { \
         LOG2FILE(#type": "fmt"\n", ##arg); \
     } \
@@ -116,6 +118,7 @@ char *get_absolute_path(const char *path, _request_type req_type);
 #define MSGP(type, fmt, arg...) do { \
     if (g_debug == 1) { \
         fprintf(stderr, #type": "fmt": %s\n", ##arg, strerror(errno)); \
+        fflush(stderr); \
     } else if (g_log != NULL) { \
         LOG2FILE(g_log, #type": "fmt": %s\n", ##arg, strerror(errno)); \
     } \
