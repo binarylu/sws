@@ -315,7 +315,7 @@ get_absolute_path(const char *path, _request_type req_type)
     } else if (req_type == REQ_STATIC) {
         username = seperate_string(path, "/", &username_len, 1);
         --username_len;
-        if (username[0] == '~') {
+        if (username != NULL && username[0] == '~') {
             path += username_len + 2;
             snprintf(abs_path, 6 + username_len + 1, "/home/%s", username + 1);
             snprintf(abs_path + 6 + username_len,
