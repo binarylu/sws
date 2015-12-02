@@ -1,10 +1,10 @@
-#ifndef __NET_H__
-#define __NET_H__
+#ifndef _NET_H_
+#define _NET_H_
 
-#include <sys/socket.h>
 #include <arpa/inet.h>
-#include <unistd.h>
 #include <sys/select.h>
+#include <sys/socket.h>
+#include <unistd.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -45,5 +45,4 @@ int validate_ipv4(const char *ip);
 
 void network_loop(char *address, char *port);
 
-
-#endif /* end of include guard: __NET_H__ */
+#endif /* !_NET_H_ */

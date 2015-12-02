@@ -1,5 +1,5 @@
-#ifndef __HANDLE_RESPONSE_H__
-#define __HANDLE_RESPONSE_H__
+#ifndef _HANDLE_RESPONSE_H_
+#define _HANDLE_RESPONSE_H_
 
 #include "public.h"
 
@@ -9,4 +9,4 @@ int generate_desc(_response* response);
 char* generate_str(const char* desc);
 int handleError(_response *response);
 
-#endif /* end of include guard: __HANDLE_RESPONSE_H__ */
+#endif /* !_HANDLE_RESPONSE_H_ */

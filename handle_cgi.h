@@ -1,12 +1,13 @@
-#ifndef __HANDLE_CGI_H__
-#define __HANDLE_CGI_H__
+#ifndef _HANDLE_CGI_H_
+#define _HANDLE_CGI_H_
+
+#include <sys/wait.h>
 
 #include "public.h"
-#include <sys/wait.h>
 
 /*
  * Needn't allocate/free memory.
  */
 int handle_cgi(/*Input*/const _request *request, /*Output*/_response *response);
 
-#endif /* end of include guard: __HANDLE_CGI_H__ */
+#endif /* !_HANDLE_CGI_H_ */

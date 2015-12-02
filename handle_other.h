@@ -1,5 +1,5 @@
-#ifndef __HANDLE_OTHER_H__
-#define __HANDLE_OTHER_H__
+#ifndef _HANDLE_OTHER_H_
+#define _HANDLE_OTHER_H_
 
 #include "public.h"
 
@@ -8,4 +8,4 @@
  */
 int handle_other(/*Input*/const _request *request, /*Output*/_response *response);
 
-#endif /* end of include guard: __HANDLE_OTHER_H__ */
+#endif /* !_HANDLE_OTHER_H_ */
