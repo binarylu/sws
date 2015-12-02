@@ -1,5 +1,5 @@
-#ifndef __HTTP_PARSER_H__
-#define __HTTP_PARSER_H__
+#ifndef _HTTP_PARSER_H_
+#define _HTTP_PARSER_H_
 
 #include "public.h"
 
@@ -9,5 +9,4 @@
 int decode_request(/*Input*/const char *content, /*Output*/_request *request);
 char * encode_response(/*Input*/const _response *response);
 
-
-#endif /* end of include guard: __HTTP_PARSER_H__ */
+#endif /* !_HTTP_PARSER_H_ */

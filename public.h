@@ -1,19 +1,20 @@
-#ifndef __PUBLIC_H__
-#define __PUBLIC_H__
+#ifndef _PUBLIC_H_
+#define _PUBLIC_H_
+
+#include <sys/stat.h>
 
 #include <netdb.h>
-#include <unistd.h>
-#include <fcntl.h>
-#include <sys/stat.h>
-#include <errno.h>
-#include <time.h>
-#include <limits.h>
 
+#include <assert.h>
+#include <ctype.h>
+#include <errno.h>
+#include <fcntl.h>
+#include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <assert.h>
 #include <string.h>
-#include <ctype.h>
+#include <time.h>
+#include <unistd.h>
 
 /*#define DEVELOPMENT*/
 
@@ -175,4 +176,4 @@ do {                            \
 #define DEBUGP(fmt, arg...)
 #endif
 
-#endif /* end of include guard: __PUBLIC_H__ */
+#endif /* !_PUBLIC_H_ */

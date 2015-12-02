@@ -1,5 +1,5 @@
-#ifndef __HANDLE_H__
-#define __HANDLE_H__
+#ifndef _HANDLE_H_
+#define _HANDLE_H_
 
 #include <unistd.h>
 
@@ -17,4 +17,4 @@ int init_handle();
 int handle(_connection *connection);
 void destroy_handle();
 
-#endif /* end of include guard: __HANDLE_H__ */
+#endif /* !_HANDLE_H_ */
