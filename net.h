@@ -15,23 +15,25 @@
 
 #define MAX_LISTEN 5
 
-#define SET_CONNECTION(c, _fd, _addr) do { \
-    (c).fd = (_fd); \
-    (c).buf = NULL; \
-    (c).pos = 0; \
-    memcpy((c).addr, &(_addr), sizeof(struct sockaddr_storage)); \
-    request_init((c).request); \
-    response_init((c).response); \
-} while(0)
+#define SET_CONNECTION(c, _fd, _addr)                               \
+do {                                                                \
+    (c).fd = (_fd);                                                 \
+    (c).buf = NULL;                                                 \
+    (c).pos = 0;                                                    \
+    memcpy((c).addr, &(_addr), sizeof(struct sockaddr_storage));    \
+    request_init((c).request);                                      \
+    response_init((c).response);                                    \
+} while( /* CONSTCOND */ 0)
 
-#define RESET_CONNECTION(c) do { \
-    (c).fd = -1; \
-    (c).buf = NULL; \
-    (c).pos = 0; \
-    memset((c).addr, 0, sizeof(struct sockaddr_storage)); \
-    request_clear((c).request); \
-    response_clear((c).response); \
-} while(0)
+#define RESET_CONNECTION(c)                                 \
+do {                                                        \
+    (c).fd = -1;                                            \
+    (c).buf = NULL;                                         \
+    (c).pos = 0;                                            \
+    memset((c).addr, 0, sizeof(struct sockaddr_storage));   \
+    request_clear((c).request);                             \
+    response_clear((c).response);                           \
+} while( /* CONSTCOND */ 0)
 
 /*
  * Memory should be allocated before calling

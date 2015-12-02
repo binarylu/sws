@@ -26,13 +26,13 @@ typedef enum { NONE_METHOD, GET_METHOD, HEAD_METHOD /*, POST_METHOD*/ } _method;
 typedef enum { REQ_CGI, REQ_STATIC, REQ_OTHER } _request_type;
 typedef enum { NO_ERR, REQ_LINE_ERR, FORMAT_ERR, SYSTEM_ERR } _request_err;
 
-typedef struct __header_entry {
+typedef struct _header_entry {
     char *key;
     char *value;
-    struct __header_entry *next;
+    struct _header_entry *next;
 } _header_entry;
 
-typedef struct __request {
+typedef struct _request {
     _method method;
     char *uri;
     char *version;
@@ -40,7 +40,7 @@ typedef struct __request {
     _request_err errcode;
 } _request;
 
-typedef struct __response {
+typedef struct _response {
     unsigned int code;
     char *desc;
     char *version;
@@ -49,7 +49,7 @@ typedef struct __response {
     int is_cgi;
 } _response;
 
-typedef struct __connection {
+typedef struct _connection {
     int fd;
     char *buf;
     size_t pos;
@@ -88,76 +88,88 @@ int validate_path_security(const char *path, _request_type req_type);
  */
 char *get_absolute_path(const char *path, _request_type req_type);
 
-#define LOG2FILE(fmt, arg...) do { \
-    FILE *f = NULL; \
-    if ((f = fopen(g_log, "a")) != NULL) { \
-        fprintf(f, fmt, ##arg); \
-        fclose(f); \
-    } \
-} while(0)
+#define LOG2FILE(fmt, arg...)               \
+do {                                        \
+    FILE *f = NULL;                         \
+    if ((f = fopen(g_log, "a")) != NULL) {  \
+        fprintf(f, fmt, ##arg);             \
+        fclose(f);                          \
+    }                                       \
+} while( /* CONSTCOND */ 0)
 
-#define LOG(fmt, arg...) do { \
-    if (g_debug == 1) { \
-        fprintf(stdout, fmt"\n", ##arg); \
-        fflush(stdout); \
-    } else if (g_log != NULL) { \
-        LOG2FILE(fmt"\n", ##arg); \
-    } \
-} while(0)
+#define LOG(fmt, arg...)                    \
+do {                                        \
+    if (g_debug == 1) {                     \
+        fprintf(stdout, fmt"\n", ##arg);    \
+        fflush(stdout);                     \
+    } else if (g_log != NULL) {             \
+        LOG2FILE(fmt"\n", ##arg);           \
+    }                                       \
+} while( /* CONSTCOND */ 0)
 
-#define MSG(type, fmt, arg...) do { \
-    if (g_debug == 1) { \
-        fprintf(stderr, #type": "fmt"\n", ##arg); \
-        fflush(stderr); \
-    } else if (g_log != NULL) { \
-        LOG2FILE(#type": "fmt"\n", ##arg); \
-    } \
-} while(0)
+#define MSG(type, fmt, arg...)                      \
+do {                                                \
+    if (g_debug == 1) {                             \
+        fprintf(stderr, #type": "fmt"\n", ##arg);   \
+        fflush(stderr);                             \
+    } else if (g_log != NULL) {                     \
+        LOG2FILE(#type": "fmt"\n", ##arg);          \
+    }                                               \
+} while( /* CONSTCOND */ 0)
 
-#define MSGP(type, fmt, arg...) do { \
-    if (g_debug == 1) { \
-        fprintf(stderr, #type": "fmt": %s\n", ##arg, strerror(errno)); \
-        fflush(stderr); \
-    } else if (g_log != NULL) { \
-        LOG2FILE(g_log, #type": "fmt": %s\n", ##arg, strerror(errno)); \
-    } \
-} while(0)
+#define MSGP(type, fmt, arg...)                                         \
+do {                                                                    \
+    if (g_debug == 1) {                                                 \
+        fprintf(stderr, #type": "fmt": %s\n", ##arg, strerror(errno));  \
+        fflush(stderr);                                                 \
+    } else if (g_log != NULL) {                                         \
+        LOG2FILE(g_log, #type": "fmt": %s\n", ##arg, strerror(errno));  \
+    }                                                                   \
+} while( /* CONSTCOND */ 0)
 
-#define FATAL_ERROR(fmt, arg...) do { \
-    MSGP(Error, fmt, ##arg); \
-    exit(EXIT_FAILURE); \
-} while(0)
+#define FATAL_ERROR(fmt, arg...)    \
+do {                                \
+    MSGP(Error, fmt, ##arg);        \
+    exit(EXIT_FAILURE);             \
+} while( /* CONSTCOND */ 0)
 
-#define ERROR(fmt, arg...) do { \
-    MSG(Error, fmt, ##arg); \
-    exit(EXIT_FAILURE); \
-} while(0)
+#define ERROR(fmt, arg...)      \
+do {                            \
+    MSG(Error, fmt, ##arg);     \
+    exit(EXIT_FAILURE);         \
+} while( /* CONSTCOND */ 0)
 
-#define RET_ERROR(retval, fmt, arg...) do { \
-    MSG(Error, fmt, ##arg); \
-    return retval; \
-} while(0)
+#define RET_ERROR(retval, fmt, arg...)  \
+do {                                    \
+    MSG(Error, fmt, ##arg);             \
+    return retval;                      \
+} while( /* CONSTCOND */ 0)
 
-#define RET_ERRORP(retval, fmt, arg...) do { \
-    MSGP(Error, fmt, ##arg); \
-    return retval; \
-} while(0)
+#define RET_ERRORP(retval, fmt, arg...) \
+do {                                    \
+    MSGP(Error, fmt, ##arg);            \
+    return retval;                      \
+} while( /* CONSTCOND */ 0)
 
-#define WARN(fmt, arg...) do { \
-    MSG(Warning, fmt, ##arg); \
-} while(0)
+#define WARN(fmt, arg...)       \
+do {                            \
+    MSG(Warning, fmt, ##arg);   \
+} while( /* CONSTCOND */ 0)
 
-#define WARNP(fmt, arg...) do { \
-    MSGP(Warning, fmt, ##arg); \
-} while(0)
+#define WARNP(fmt, arg...)      \
+do {                            \
+    MSGP(Warning, fmt, ##arg);  \
+} while( /* CONSTCOND */ 0)
 
 #ifdef DEVELOPMENT
-#define DEBUG(fmt, arg...) do { \
-    MSG(Debug, fmt, ##arg); \
-} while(0)
-#define DEBUGP(fmt, arg...) do { \
-    MSGP(Debug, fmt, ##arg); \
-} while(0)
+#define DEBUG(fmt, arg...)      \
+do {                            \
+    MSG(Debug, fmt, ##arg);     \
+} while( /* CONSTCOND */ 0)
+#define DEBUGP(fmt, arg...)     \
+do {                            \
+    MSGP(Debug, fmt, ##arg);    \
+} while( /* CONSTCOND */ 0)
 #else
 #define DEBUG(fmt, arg...)
 #define DEBUGP(fmt, arg...)
