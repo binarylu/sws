@@ -63,7 +63,7 @@ generate_index(const char *path)
                 lstat(dp->d_name, &sb);
                 if (dp->d_name[0] != '.') {
                     count = snprintf(pos, left, "<tr><td><a href='%s/%s'>%s</a></td><td>%lu</td><td>%s</td></tr>",
-                                    path, dp->d_name, dp->d_name, sb.st_size, get_time_str(sb.st_mtime));
+                                    path, dp->d_name, dp->d_name, (long unsigned int)sb.st_size, get_time_str(sb.st_mtime));
                     pos += count;
                     left -= count;
                 }
