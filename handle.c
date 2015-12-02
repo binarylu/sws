@@ -93,8 +93,9 @@ handle(_connection *connection)
             LOG("%s %s %s %s %s %u %ld", ip,
                     request_time,
                     request->method == GET_METHOD ? "GET" :
-                    (request->method == HEAD_METHOD ? "HEAD" : "NONE"),
-                    request->uri, request->version,
+                    (request->method == HEAD_METHOD ? "HEAD" : "OTHER"),
+                    request->uri == NULL ? "" : request->uri,
+                    request->version == NULL ? "" : request->version,
                     response->code,
                     strlen(response->body == NULL ? "" : response->body));
 
@@ -107,6 +108,8 @@ handle(_connection *connection)
 static _request_type
 get_request_type(_request *request)
 {
+    if (request->uri == NULL)
+        return REQ_STATIC;
     if (g_dir_cgi != NULL && strncmp(request->uri, "/cgi-bin", 8) == 0)
         return REQ_CGI;
     return REQ_STATIC;

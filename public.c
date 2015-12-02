@@ -271,7 +271,7 @@ validate_path_security(const char *path, _request_type req_type)
         real_path = realpath(path, NULL);
         if (real_path == NULL)
             break;
-        real_server_dir = realpath(path, NULL);
+        real_server_dir = realpath(server_dir, NULL);
         if (real_server_dir == NULL)
             break;
 

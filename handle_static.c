@@ -11,12 +11,6 @@ handle_static(/*Input*/_request *request, /*Output*/_response *response)
     get_date_rfc1123(time_buff, MAX_TIME_SIZE);
     response_addfield(response, "Date", 4, time_buff, strlen(time_buff));
 
-    if (strcmp(request->version, "HTTP/1.0") != 0) {
-        response->code = 400;
-        generate_desc(response);
-        handleError(response);
-        return -1;
-    }
     if (request->errcode != NO_ERR) {
         if (request->errcode == SYSTEM_ERR) {
             response->code = 500;
@@ -27,6 +21,12 @@ handle_static(/*Input*/_request *request, /*Output*/_response *response)
         }
         handleError(response);
         return 0;
+    }
+    if (strcmp(request->version, "HTTP/1.0") != 0) {
+        response->code = 400;
+        generate_desc(response);
+        handleError(response);
+        return -1;
     }
 
     uri = request->uri;
