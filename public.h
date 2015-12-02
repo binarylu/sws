@@ -17,6 +17,8 @@
 #include <unistd.h>
 
 /*#define DEVELOPMENT*/
+#define SERVER_NAME         "sws 1.0"
+#define HTTP_VERSION        "HTTP/1.0"
 
 extern int g_debug;
 extern const char *g_log;

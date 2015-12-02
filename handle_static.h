@@ -19,9 +19,6 @@
 #include "index.h"
 
 #define MAX_TIME_SIZE       100
-#define SERVER_NAME         "sws"
-#define SERVER_NAME_SIZE    3
-#define VERSION             "HTTP/1.0"
 #define BUFF_SIZE           1024
 #define INDEX               "index.html"
 

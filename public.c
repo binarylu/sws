@@ -84,11 +84,11 @@ response_init(_response *resp)
 {
     resp->code = -1;
     resp->desc = NULL;
-    resp->version = "HTTP/1.0";
+    resp->version = HTTP_VERSION;
     resp->header_entry = NULL;
     resp->body = NULL;
     resp->is_cgi = 0;
-    response_addfield(resp, "Server", 6, "sws 1.0", 7);
+    response_addfield(resp, "Server", 6, SERVER_NAME, strlen(SERVER_NAME));
 }
 
 void
