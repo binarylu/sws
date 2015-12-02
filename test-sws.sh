@@ -69,7 +69,8 @@ requests() {
 
 uris() {
 	for U in ${URIS}; do
-		echo "=> GET '${U}' HTTP/1.0"
+		echo "=> GET ${U} HTTP/1.0"
+        U=`echo ${U} | sed 's/%/%%/g'`
 		printf "GET ${U} HTTP/1.0\r\n\r\n"  | nc ${SERVER} ${PORT}
 	done
 	echo "=> GET HTTP/1.0"
