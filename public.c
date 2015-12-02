@@ -285,7 +285,7 @@ validate_path_security(const char *path, _request_type req_type)
             break;
 
         ret = 1;
-    } while(0);
+    } while( /* CONSTCOND */ 0);
 
     if (real_path)
         free(real_path);

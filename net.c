@@ -256,7 +256,8 @@ validate_ipv4(const char *ip)
     while ((p = seperate_string(ip, ".", &len, cnt++)) != NULL) {
         sum = 0;
         for (i = 0; i < len; ++i) {
-            if (!isdigit((int)p[i]))
+            /*if (!isdigit((int)p[i]))*/
+            if (p[i] < '0' || p[i] > '9')
                 return 0;
             sum = sum * 10 + p[i] - '0';
         }
