@@ -20,6 +20,8 @@
     (c).buf = NULL; \
     (c).pos = 0; \
     memcpy((c).addr, &(_addr), sizeof(struct sockaddr_storage)); \
+    request_init((c).request); \
+    response_init((c).response); \
 } while(0)
 
 #define RESET_CONNECTION(c) do { \

@@ -52,8 +52,6 @@ handle(_connection *connection)
 
             request = connection->request;
             response = connection->response;
-            request_init(request);
-            response_init(response);
 
             if (decode_request(connection->buf, request) != 0) {
                 RET_ERROR(-1, "Decode request error");
