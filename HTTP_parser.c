@@ -329,7 +329,7 @@ request_header(const char *str, _request *req)
     if (!try_match(&str, "If-Modified-Since:" SP_STR, 19)) {
         return NULL;
     }
-    if ((end = if_modified_since(str)) != NULL) {
+    if ((end = if_modified_since(str)) == NULL) {
         req->errcode = FORMAT_ERR;
         return NULL;
     }

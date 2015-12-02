@@ -19,6 +19,8 @@ handle(_connection *connection)
 {
     char ip[INET6_ADDRSTRLEN];
     char request_time[64];
+    const char *request_line = NULL;
+    size_t request_line_len;
     int nread, nwrite;
     _request *request;
     _response *response;
@@ -50,8 +52,6 @@ handle(_connection *connection)
 
             request = connection->request;
             response = connection->response;
-            request_init(request);
-            response_init(response);
 
             if (decode_request(connection->buf, request) != 0) {
                 RET_ERROR(-1, "Decode request error");
@@ -90,7 +90,15 @@ handle(_connection *connection)
                 WARNP("Failed to send");
             }
 
-            LOG("%s %s %s %s %s %u %ld", ip,
+            request_line = seperate_string(connection->buf, "\r", &request_line_len, 0);
+            if (request_line != NULL)
+                connection->buf[request_line_len] = '\0';
+            LOG("%s %s %s %u %ld", ip,
+                    request_time,
+                    connection->buf,
+                    response->code,
+                    strlen(response->body == NULL ? "" : response->body));
+            DEBUG("after: %s %s %s %s %s %u %ld", ip,
                     request_time,
                     request->method == GET_METHOD ? "GET" :
                     (request->method == HEAD_METHOD ? "HEAD" : "OTHER"),

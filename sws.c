@@ -55,7 +55,8 @@ int main(int argc, char *argv[])
     }
     if (g_log != NULL)
         if (init_log(g_log) != 0) {
-            error(-1, errno, "Fail to open log file!");
+            fprintf(stderr, "Fail to open log file!");
+            exit(EXIT_FAILURE);
         }
     if (!validate_port(port)) {
         fprintf(stderr, "Invalid port number!\n");
