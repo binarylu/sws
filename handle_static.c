@@ -9,7 +9,12 @@ handle_static(/*Input*/_request *request, /*Output*/_response *response)
     char *uri;
 
     get_date_rfc1123(time_buff, MAX_TIME_SIZE);
-    response_addfield(response, "Date", 4, time_buff, strlen(time_buff));
+    if (response_addfield(response, "Date", 4, time_buff, strlen(time_buff)) != 0) {
+        response->code = 500;
+        generate_desc(response);
+        handleError(response);
+        return 0;
+    }
 
     if (request->errcode != NO_ERR) {
         if (request->errcode == SYSTEM_ERR) {
@@ -22,16 +27,29 @@ handle_static(/*Input*/_request *request, /*Output*/_response *response)
         handleError(response);
         return 0;
     }
+
     if (strcmp(request->version, "HTTP/1.0") != 0) {
         response->code = 400;
         generate_desc(response);
         handleError(response);
-        return -1;
+        return 0;
     }
 
-    uri = request->uri;
+    if ((uri = request->uri) == NULL) {
+        response->code = 500;
+        generate_desc(response);
+        handleError(response);
+        return 0;
+    }
     request->uri = get_absolute_path(request->uri, REQ_STATIC);
     free(uri);
+
+    if (request->uri == NULL) {
+        response->code = 500;
+        generate_desc(response);
+        handleError(response);
+        return 0;
+    }
 
     if (stat(request->uri, &req_stat) < 0) {
         if (errno == ENOENT) {
@@ -75,7 +93,12 @@ handle_static(/*Input*/_request *request, /*Output*/_response *response)
 
     p = gmtime(&(req_stat.st_mtime));
     strftime(time_buff, MAX_TIME_SIZE, "%a, %d %b %Y %T GMT", p);
-    response_addfield(response, "Last-Modified", 13, time_buff, strlen(time_buff));
+    if (response_addfield(response, "Last-Modified", 13, time_buff, strlen(time_buff)) != 0) {
+        response->code = 500;
+        generate_desc(response);
+        handleError(response);
+        return 0;
+    }
 
 
     if (S_ISREG(req_stat.st_mode)) {
@@ -136,9 +159,13 @@ set_file(const _request *request, const struct stat* req_stat, _response *respon
     int body_size;
 
     mime = getMIME(request->uri);
-    response_addfield(response, "Content-Type", 12, mime, strlen(mime));
+    if (response_addfield(response, "Content-Type", 12, mime, strlen(mime)) != 0) {
+        return -1;
+    }
     sprintf(str, "%d", (int)(req_stat->st_size));
-    response_addfield(response, "Content-Length", 14, str, strlen(str));
+    if (response_addfield(response, "Content-Length", 14, str, strlen(str)) != 0) {
+        return -1;
+    }
 
     if (request->method == HEAD_METHOD){
         response->code = 200;
@@ -147,7 +174,9 @@ set_file(const _request *request, const struct stat* req_stat, _response *respon
     }
 
     body_size = req_stat->st_size;
-    response->body = (char *)malloc(body_size+1);
+    if ((response->body = (char *)malloc(body_size+1)) == NULL) {
+        return -1;
+    }
     (response->body)[0] = '\0';
     if ((req_fd = open(request->uri, O_RDONLY)) == -1 ) {
         return -1;
@@ -193,16 +222,21 @@ set_directory(_request *request, struct stat* req_stat, _response *response)
     path = request->uri;
     if (path[strlen(path)-1] == '/')
         path[strlen(path)-1] = '\0';
-    response_addfield(response, "Content-Type", 12, "text/html", 9);
-    response->body = generate_index(request->uri);
+    if (response_addfield(response, "Content-Type", 12, "text/html", 9) != 0) {
+        return -1;
+    }
+    if ((response->body = generate_index(request->uri)) == NULL) {
+        return -1;
+    }
     sprintf(str, "%d", (int)strlen(response->body));
-    response_addfield(response, "Content-Length", 14, str, strlen(str));
+    if (response_addfield(response, "Content-Length", 14, str, strlen(str)) != 0) {
+        return -1;
+    }
 
     if (request->method == HEAD_METHOD){
         free(response->body);
         response->body = NULL;
     }
-        
 
     response->code = 200;
     generate_desc(response);
