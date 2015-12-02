@@ -100,6 +100,14 @@ handle(_connection *connection)
                     connection->buf,
                     response->code,
                     strlen(response->body == NULL ? "" : response->body));
+            DEBUG("after: %s %s %s %s %s %u %ld", ip,
+                    request_time,
+                    request->method == GET_METHOD ? "GET" :
+                    (request->method == HEAD_METHOD ? "HEAD" : "OTHER"),
+                    request->uri == NULL ? "" : request->uri,
+                    request->version == NULL ? "" : request->version,
+                    response->code,
+                    strlen(response->body == NULL ? "" : response->body));
 
             free(connection->buf);
         }
