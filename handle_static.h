@@ -12,7 +12,7 @@
 #include <dirent.h>
 #ifndef __APPLE__
 #include <magic.h>
-#endif 
+#endif
 
 #include "handle_response.h"
 #include "index.h"

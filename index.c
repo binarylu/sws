@@ -28,7 +28,7 @@ generate_index(const char *path)
     struct dirent *dp;
     int dircount, dirindex;
     struct stat sb;
-    
+
     if ((index_html = (char *)malloc(INDEX_BUFFER_SIZE)) != NULL) {
         pos = index_html;
         left = INDEX_BUFFER_SIZE;

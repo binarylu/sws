@@ -184,34 +184,34 @@ get_year_mon_day(int* year, int* mon, int* day)
 void
 get_date_rfc1123(char *buf, size_t len)
 {
-      time_t timep;
-      struct tm *p;
+    time_t timep;
+    struct tm *p;
 
-      time(&timep);
-      p = gmtime(&timep);
-      strftime(buf, len, "%a, %d %b %Y %T GMT", p);
+    time(&timep);
+    p = gmtime(&timep);
+    strftime(buf, len, "%a, %d %b %Y %T GMT", p);
 }
 
 void
 get_date_rfc850(char *buf, size_t len)
 {
-      time_t timep;
-      struct tm *p;
+    time_t timep;
+    struct tm *p;
 
-      time(&timep);
-      p = gmtime(&timep);
-      strftime(buf, len, "%A, %d-%b-%y %T GMT", p);
+    time(&timep);
+    p = gmtime(&timep);
+    strftime(buf, len, "%A, %d-%b-%y %T GMT", p);
 }
 
 void
 get_date_asctime(char *buf, size_t len)
 {
-      time_t timep;
-      struct tm *p;
+    time_t timep;
+    struct tm *p;
 
-      time(&timep);
-      p = localtime(&timep);
-      strftime(buf, len, "%c", p);
+    time(&timep);
+    p = localtime(&timep);
+    strftime(buf, len, "%c", p);
 }
 
 const char *
@@ -323,7 +323,7 @@ get_absolute_path(const char *path, _request_type req_type)
         } else {
             if (g_dir[strlen(g_dir)-1] == '/' && path[0] == '/')
                 snprintf(abs_path, PATH_MAX, "%s%s", g_dir, path+1);
-            else 
+            else
                 snprintf(abs_path, PATH_MAX, "%s%s", g_dir, path);
         }
     } else {

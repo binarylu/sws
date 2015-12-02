@@ -35,7 +35,7 @@ handle_cgi(/*Input*/const _request *req, /*Output*/_response *resp)
         perror("pipe");
         exit(1);
     }
-    
+
     pid = fork();
     if (pid == -1) {
         perror("fork");
