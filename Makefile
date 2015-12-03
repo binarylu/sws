@@ -23,8 +23,6 @@ public.o: public.c
 sws.o: sws.c
 	$(CC) $(CFLAGS) -c -o sws.o sws.c
 
-test_handle:
-	$(CC) $(CFLAGS) -o test handle_cgi.c public.c test_request.c HTTP_parser.c handle_response.c handle_static.c index.c $(LIB)
 .PHONY: clean
 clean:
 	-rm -fr sws *.o
