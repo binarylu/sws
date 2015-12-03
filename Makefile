@@ -1,15 +1,13 @@
 CFLAGS = -g -Wall
 LIB = -lmagic
 
-sws: handle.o handle_cgi.o handle_other.o handle_response.o handle_static.o HTTP_parser.o index.o net.o public.o sws.o
-	$(CC) -o sws handle.o handle_cgi.o handle_other.o handle_response.o handle_static.o HTTP_parser.o index.o net.o public.o sws.o $(LIB)
+sws: handle.o handle_cgi.o handle_response.o handle_static.o HTTP_parser.o index.o net.o public.o sws.o
+	$(CC) -o sws handle.o handle_cgi.o handle_response.o handle_static.o HTTP_parser.o index.o net.o public.o sws.o $(LIB)
 
 handle.o: handle.c
 	$(CC) $(CFLAGS) -c -o handle.o handle.c
 handle_cgi.o: handle_cgi.c
 	$(CC) $(CFLAGS) -c -o handle_cgi.o handle_cgi.c
-handle_other.o: handle_other.c
-	$(CC) $(CFLAGS) -c -o handle_other.o handle_other.c
 handle_response.o: handle_response.c
 	$(CC) $(CFLAGS) -c -o handle_response.o handle_response.c
 handle_static.o: handle_static.c
