@@ -80,25 +80,28 @@ handle_cgi(/*Input*/const _request *req, /*Output*/_response *resp)
                 if (errno == EINTR) {
                     continue;
                 } else {
-                    WARNP("Fail to read");
-                    return 0;
+                    WARNP("Fail to read pipe");
+                    break;
                 }
             } else if (count == 0) {
                 break;
             }
         }
-        cgi_respond_ok(resp, buffer, strlen(buffer));
+
         close(pipefd[0]);
         wait(&status);
+
         if (status != 0)
         {
             WARNP("CGI exit with error");
             resp->code = 500;
             generate_desc(resp);
             handleError(resp);
+            return 0;
         }
+        cgi_respond_ok(resp, buffer, strlen(buffer));
     }
-    return 0;
+    return 1;
 }
 
 void
