@@ -11,6 +11,7 @@ handle_cgi(/*Input*/const _request *req, /*Output*/_response *resp)
     int pipefd[2];
     pid_t pid;
     char time_buff[MAX_TIME_SIZE];
+    int status = 0;
 
     get_date_rfc1123(time_buff, MAX_TIME_SIZE);
 
@@ -67,7 +68,7 @@ handle_cgi(/*Input*/const _request *req, /*Output*/_response *resp)
         {
             WARNP("Fail to execl");
         }
-        _exit(1);
+        exit(1);
     } else {
         close(pipefd[1]);
         char *buffer = (char *)malloc(4096);
@@ -88,7 +89,14 @@ handle_cgi(/*Input*/const _request *req, /*Output*/_response *resp)
         }
         cgi_respond_ok(resp, buffer, strlen(buffer));
         close(pipefd[0]);
-        wait(0);
+        wait(&status);
+        if (status != 0)
+        {
+            WARNP("CGI exit with error");
+            resp->code = 500;
+            generate_desc(resp);
+            handleError(resp);
+        }
     }
     return 0;
 }
