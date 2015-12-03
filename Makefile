@@ -25,4 +25,4 @@ sws.o: sws.c
 
 .PHONY: clean
 clean:
-	-rm -fr sws *.o
+	-rm -fr sws *.o magic.mgc
