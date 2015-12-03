@@ -28,7 +28,7 @@ handle_static(/*Input*/_request *request, /*Output*/_response *response)
         return 0;
     }
 
-    if (strcmp(request->version, HTTP_VERSION) != 0) {
+    if (request->version == NULL) {
         response->code = 400;
         generate_desc(response);
         handleError(response);
