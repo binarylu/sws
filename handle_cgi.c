@@ -92,7 +92,7 @@ handle_cgi(/*Input*/const _request *req, /*Output*/_response *resp)
         close(pipefd[0]);
         if (wait(&status) == -1)
         {
-            WARP("Fail to wait");
+            WARNP("Fail to wait");
         }
 
         if (WIFEXITED(status) == 0 ||  WEXITSTATUS(status) != 0)
