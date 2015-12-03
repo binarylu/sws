@@ -51,6 +51,9 @@ handle_cgi(/*Input*/const _request *req, /*Output*/_response *resp)
 
     if (pipe(pipefd) == -1) {
         WARNP("Fail to create pipe");
+        resp->code = 500;
+        generate_desc(resp);
+        handleError(resp);
         return 0;
     }
 
@@ -64,8 +67,7 @@ handle_cgi(/*Input*/const _request *req, /*Output*/_response *resp)
     } else if (pid == 0) {
         while ((dup2(pipefd[1], STDOUT_FILENO) == -1) && (errno == EINTR)) {}
         close(pipefd[0]);
-        if (execl(cgipath, "", NULL) == -1)
-        {
+        if (execl(cgipath, "", NULL) == -1) {
             WARNP("Fail to execl");
             exit(1);
         }
@@ -82,7 +84,10 @@ handle_cgi(/*Input*/const _request *req, /*Output*/_response *resp)
                     continue;
                 } else {
                     WARNP("Fail to read pipe");
-                    break;
+                    resp->code = 500;
+                    generate_desc(resp);
+                    handleError(resp);
+                    return 0;
                 }
             } else if (count == 0) {
                 break;
@@ -90,13 +95,11 @@ handle_cgi(/*Input*/const _request *req, /*Output*/_response *resp)
         }
 
         close(pipefd[0]);
-        if (wait(&status) == -1)
-        {
+        if (wait(&status) == -1) {
             WARNP("Fail to wait");
         }
 
-        if (WIFEXITED(status) == 0 ||  WEXITSTATUS(status) != 0)
-        {
+        if (WIFEXITED(status) == 0 ||  WEXITSTATUS(status) != 0) {
             WARN("CGI exit with error");
             resp->code = 500;
             generate_desc(resp);
