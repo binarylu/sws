@@ -9,7 +9,6 @@
 #include "HTTP_parser.h"
 #include "handle_static.h"
 #include "handle_cgi.h"
-#include "handle_other.h"
 
 #define BUFFSIZE 40960
 
