@@ -77,7 +77,10 @@ generate_str(const char* desc)
 {
     size_t len = strlen(desc);
     char* tmp = (char*)malloc(sizeof(char)*(len+1));
-    strncpy(tmp, desc, len+1);
+    if (tmp == NULL)
+        return NULL;
+    strncpy(tmp, desc, len);
+    tmp[len] = '\0';
     return tmp;
 }
 

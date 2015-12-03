@@ -162,7 +162,7 @@ set_file(const _request *request, const struct stat* req_stat, _response *respon
     int req_fd;
     int nums;
     char str[20];
-    const char* mime = NULL;
+    char* mime = NULL;
     char buf[BUFF_SIZE];
     int body_size;
 
@@ -170,6 +170,7 @@ set_file(const _request *request, const struct stat* req_stat, _response *respon
     if (response_addfield(response, "Content-Type", 12, mime, strlen(mime)) != 0) {
         return -1;
     }
+    free(mime);
     sprintf(str, "%d", (int)(req_stat->st_size));
     if (response_addfield(response, "Content-Length", 14, str, strlen(str)) != 0) {
         return -1;
@@ -252,13 +253,14 @@ set_directory(_request *request, struct stat* req_stat, _response *response)
     return 0;
 }
 
-const char*
+char*
 getMIME(const char* path)
 {
     const char *mime;
+    char *mime_ret;
 #ifdef __APPLE__
-    mime = generate_str("text/html");
-    return mime;
+    mime_ret = generate_str("text/html");
+    return mime_ret;
 #else
     magic_t magic;
 
@@ -266,9 +268,9 @@ getMIME(const char* path)
     magic_load(magic, NULL);
     magic_compile(magic, NULL);
     mime = magic_file(magic, path);
-    mime = generate_str(mime);
+    mime_ret = generate_str(mime);
     magic_close(magic);
 
-    return mime;
+    return mime_ret;
 #endif
 }
