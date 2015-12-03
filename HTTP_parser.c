@@ -1,10 +1,10 @@
-#include "HTTP_parser.h"
-#include "public.h"
-
 #include <assert.h>
 #include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
+
+#include "HTTP_parser.h"
+#include "public.h"
 
 #define CRLF    "\r\n"
 #define SP_STR  " "
@@ -68,8 +68,10 @@ url_decode(char *url)
         next = *in++;
 
         /* Ignore parameters */
-        if (next == '?')
+        if (next == '?') {
+            setenv("QUERY_STRING", in, 1);
             break;
+        }
 
         if (next == '+')
             next = ' ';
