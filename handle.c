@@ -78,8 +78,7 @@ handle(_connection *connection)
                     handle_static(request, response);
                     DEBUG("static abs path: %s", get_absolute_path(request->uri, REQ_STATIC));
                     break;
-                case REQ_OTHER: handle_other(request, response); break;
-                default: handle_other(request, response);
+                default: handle_static(request, response);
             }
 
             char *resp = encode_response(response);
