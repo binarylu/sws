@@ -10,41 +10,57 @@ handle_cgi(/*Input*/const _request *req, /*Output*/_response *resp)
     struct stat pathstat;
     int pipefd[2];
     pid_t pid;
+    char time_buff[MAX_TIME_SIZE];
+
+    get_date_rfc1123(time_buff, MAX_TIME_SIZE);
+
+    if (response_addfield(resp, "Date", 4, time_buff, strlen(time_buff)) != 0) {
+        resp->code = 500;
+        generate_desc(resp);
+        handleError(resp);
+        return 0;
+    }
 
     /* no file existed, respond 404 */
-    if(stat(cgipath, &pathstat) == -1) {
-        perror("stat");
-        respond_not_found(resp);
+    if (stat(cgipath, &pathstat) == -1) {
+        DEBUGP("Fail to stat file");
+        resp->code = 404;
+        generate_desc(resp);
         return 0;
     }
 
     /* not regular file, respond 403 */
-    if(!S_ISREG(pathstat.st_mode)) {
-        respond_forbidden(resp);
+    if (!S_ISREG(pathstat.st_mode)) {
+        DEBUGP("Not regular file");
+        resp->code = 403;
+        generate_desc(resp);
         return 0;
     }
 
     /* can't execute file, respond 403 */
     if (access(cgipath, X_OK) == -1) {
-        perror("access");
-        respond_forbidden(resp);
+        DEBUGP("Fail to access file");
+        resp->code = 403;
+        generate_desc(resp);
         return 0;
     }
 
     if (pipe(pipefd) == -1) {
-        perror("pipe");
-        exit(1);
+        WARNP("Fail to create pipe");
+        return 0;
     }
 
     pid = fork();
     if (pid == -1) {
-        perror("fork");
-        exit(1);
+        WARNP("Fail to fork");
+        return 0;
     } else if (pid == 0) {
         while ((dup2(pipefd[1], STDOUT_FILENO) == -1) && (errno == EINTR)) {}
         close(pipefd[0]);
-        execl(cgipath, "", NULL);
-        perror("execl");
+        if (execl(cgipath, "", NULL) == -1)
+        {
+            WARNP("Fail to execl");
+        }
         _exit(1);
     } else {
         close(pipefd[1]);
@@ -57,14 +73,14 @@ handle_cgi(/*Input*/const _request *req, /*Output*/_response *resp)
                 if (errno == EINTR) {
                     continue;
                 } else {
-                    perror("read");
-                    exit(1);
+                    WARNP("Fail to read");
+                    return 0;
                 }
             } else if (count == 0) {
                 break;
             }
         }
-	    cgi_respond_ok(resp, buffer, strlen(buffer));
+        cgi_respond_ok(resp, buffer, strlen(buffer));
         close(pipefd[0]);
         wait(0);
     }
@@ -74,16 +90,7 @@ handle_cgi(/*Input*/const _request *req, /*Output*/_response *resp)
 void
 cgi_respond_ok(_response *resp, char *buffer, int buflen)
 {
-    char time_buff[MAX_TIME_SIZE];
-    get_date_rfc1123(time_buff, MAX_TIME_SIZE);
     resp->code = 200;
-
-    if (response_addfield(resp, "Date", 4, time_buff, strlen(time_buff)) != 0) {
-        resp->code = 500;
-        generate_desc(resp);
-        handleError(resp);
-        return;
-    }
     generate_desc(resp);
     resp->body = buffer;
     resp->is_cgi = 1;
