@@ -97,6 +97,10 @@ handle_cgi(/*Input*/const _request *req, /*Output*/_response *resp)
         close(pipefd[0]);
         if (wait(&status) == -1) {
             WARNP("Fail to wait");
+            resp->code = 500;
+            generate_desc(resp);
+            handleError(resp);
+            return 0;
         }
 
         if (WIFEXITED(status) == 0 ||  WEXITSTATUS(status) != 0) {
