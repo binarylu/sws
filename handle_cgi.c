@@ -26,6 +26,7 @@ handle_cgi(/*Input*/const _request *req, /*Output*/_response *resp)
         DEBUGP("Fail to stat file");
         resp->code = 404;
         generate_desc(resp);
+        handleError(resp);
         return 0;
     }
 
@@ -34,6 +35,7 @@ handle_cgi(/*Input*/const _request *req, /*Output*/_response *resp)
         DEBUGP("Not regular file");
         resp->code = 403;
         generate_desc(resp);
+        handleError(resp);
         return 0;
     }
 
@@ -42,6 +44,7 @@ handle_cgi(/*Input*/const _request *req, /*Output*/_response *resp)
         DEBUGP("Fail to access file");
         resp->code = 403;
         generate_desc(resp);
+        handleError(resp);
         return 0;
     }
 
@@ -53,6 +56,9 @@ handle_cgi(/*Input*/const _request *req, /*Output*/_response *resp)
     pid = fork();
     if (pid == -1) {
         WARNP("Fail to fork");
+        resp->code = 500;
+        generate_desc(resp);
+        handleError(resp);
         return 0;
     } else if (pid == 0) {
         while ((dup2(pipefd[1], STDOUT_FILENO) == -1) && (errno == EINTR)) {}
