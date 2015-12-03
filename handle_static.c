@@ -3,9 +3,7 @@
 int
 handle_static(/*Input*/_request *request, /*Output*/_response *response)
 {
-    struct stat req_stat;
     char time_buff[MAX_TIME_SIZE];
-    struct tm *p;
     char *uri;
 
     get_date_rfc1123(time_buff, MAX_TIME_SIZE);
@@ -51,6 +49,22 @@ handle_static(/*Input*/_request *request, /*Output*/_response *response)
         return 0;
     }
 
+    if (validate_path_security(request->uri, REQ_STATIC) == 0){
+        response->code = 403;
+        generate_desc(response);
+        handleError(response);
+        return 0;
+    }
+    return handle_static_helper(request, response);
+
+}
+
+int
+handle_static_helper(/*Input*/_request *request, /*Output*/_response *response)
+{
+    char time_buff[MAX_TIME_SIZE];
+    struct stat req_stat;
+    struct tm *p;
     if (stat(request->uri, &req_stat) < 0) {
         if (errno == ENOENT) {
             response->code = 404;
@@ -78,12 +92,6 @@ handle_static(/*Input*/_request *request, /*Output*/_response *response)
         return 0;
     }
 
-    if (validate_path_security(request->uri, REQ_STATIC) == 0){
-        response->code = 403;
-        generate_desc(response);
-        handleError(response);
-        return 0;
-    }
 
     if (if_modified(request, &req_stat)) {
         response->code = 304;
@@ -211,10 +219,10 @@ set_directory(_request *request, struct stat* req_stat, _response *response)
             path = request->uri;
             if (path[strlen(path)-1] != '/')
                 strcat(path, "/");
-            strcat(path, INDEX);
+            strcat(request->uri, INDEX);
             (void)closedir(dirp);
             response_clear(response);
-            return handle_static(request, response);
+            return handle_static_helper(request, response);
         }
     }
     (void)closedir(dirp);
