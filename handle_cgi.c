@@ -67,8 +67,9 @@ handle_cgi(/*Input*/const _request *req, /*Output*/_response *resp)
         if (execl(cgipath, "", NULL) == -1)
         {
             WARNP("Fail to execl");
+            exit(1);
         }
-        exit(1);
+        exit(0);
     } else {
         close(pipefd[1]);
         char *buffer = (char *)malloc(4096);
@@ -89,16 +90,20 @@ handle_cgi(/*Input*/const _request *req, /*Output*/_response *resp)
         }
 
         close(pipefd[0]);
-        wait(&status);
-
-        if (status != 0)
+        if (wait(&status) == -1)
         {
-            WARNP("CGI exit with error");
+            WARP("Fail to wait");
+        }
+
+        if (WIFEXITED(status) == 0 ||  WEXITSTATUS(status) != 0)
+        {
+            WARN("CGI exit with error");
             resp->code = 500;
             generate_desc(resp);
             handleError(resp);
             return 0;
         }
+
         cgi_respond_ok(resp, buffer, strlen(buffer));
     }
     return 1;
