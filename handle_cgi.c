@@ -74,8 +74,17 @@ handle_cgi(/*Input*/const _request *req, /*Output*/_response *resp)
 void
 cgi_respond_ok(_response *resp, char *buffer, int buflen)
 {
+    char time_buff[MAX_TIME_SIZE];
+    get_date_rfc1123(time_buff, MAX_TIME_SIZE);
     resp->code = 200;
-    resp->desc = generate_str("OK");
+
+    if (response_addfield(resp, "Date", 4, time_buff, strlen(time_buff)) != 0) {
+        resp->code = 500;
+        generate_desc(resp);
+        handleError(resp);
+        return;
+    }
+    generate_desc(resp);
     resp->body = buffer;
     resp->is_cgi = 1;
 }

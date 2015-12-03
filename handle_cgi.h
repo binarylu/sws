@@ -5,6 +5,8 @@
 
 #include "public.h"
 
+#define MAX_TIME_SIZE       100
+
 /*
  * Needn't allocate/free memory.
  */
