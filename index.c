@@ -52,7 +52,7 @@ generate_index(const char *path)
             left -= count;
         }
 
-        dircount = scandir(".", &dirlist, 0, alphasort);
+        dircount = scandir(path, &dirlist, 0, alphasort);
         if (dircount < 0) {
             WARNP("generate_index(): can't open path");
             free(index_html);
