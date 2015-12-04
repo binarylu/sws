@@ -11,9 +11,7 @@ handle_static(/*Input*/const _request *request, /*Output*/_response *response)
 
     get_date_rfc1123(time_buff, MAX_TIME_SIZE);
     if (response_addfield(response, "Date", 4, time_buff, strlen(time_buff)) != 0) {
-        response->code = 500;
-        generate_desc(response);
-        handleError(response);
+        generate_response(500, response);
         return 0;
     }
     if ((http_code = validate_request(request, response)) != 0) {
@@ -186,7 +184,7 @@ set_directory(const _request *request, const char *path, struct stat *req_stat, 
     if (response_addfield(response, "Content-Type", 12, "text/html", 9) != 0) {
         return -1;
     }
-    if ((response->body = generate_index(path)) == NULL) {
+    if ((response->body = generate_index(path, request->uri)) == NULL) {
         return -1;
     }
     snprintf(str, 20, "%ld", (long int)strlen(response->body));
