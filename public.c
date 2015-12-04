@@ -331,5 +331,7 @@ get_absolute_path(const char *path, _request_type req_type, char **user_prefix)
         return NULL;
     }
 
+    if (abs_path[strlen(abs_path) - 1] == '/')
+        abs_path[strlen(abs_path) - 1] = '\0';
     return abs_path;
 }

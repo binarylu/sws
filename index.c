@@ -72,7 +72,7 @@ generate_index(const char *path)
             free(dirlist);
         }
 
-        if ((count = snprintf(pos, left, "</table></div></body></html>")) < 0) {
+        if ((count = snprintf(pos, left, "</table></div></body></html>\n")) < 0) {
             WARN("generate_index(): write error");
             free(index_html);
             return NULL;
