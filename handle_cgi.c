@@ -4,121 +4,120 @@
 void cgi_respond_ok(_response *, char *, int);
 
 int
-handle_cgi(/*Input*/const _request *req, /*Output*/_response *resp)
+handle_cgi(/*Input*/const _request *request, /*Output*/_response *response)
 {
-    char *cgipath = get_absolute_path(req->uri, REQ_CGI, NULL);
-    struct stat pathstat;
+    char time_buff[MAX_TIME_SIZE];
+    char *path;
+    char *user_prefix = NULL;
+    int http_code;
+    struct stat req_stat;
     int pipefd[2];
     pid_t pid;
-    char time_buff[MAX_TIME_SIZE];
     int status = 0;
 
     get_date_rfc1123(time_buff, MAX_TIME_SIZE);
-
-    if (response_addfield(resp, "Date", 4, time_buff, strlen(time_buff)) != 0) {
-        resp->code = 500;
-        generate_desc(resp);
-        handleError(resp);
+    if (response_addfield(response, "Date", 4, time_buff, strlen(time_buff)) != 0) {
+        generate_response(500, response);
+        return 0;
+    }
+    if ((http_code = validate_request(request, response)) != 0) {
+        generate_response(http_code, response);
         return 0;
     }
 
-    /* no file existed, respond 404 */
-    if (stat(cgipath, &pathstat) == -1) {
-        DEBUGP("Fail to stat file");
-        resp->code = 404;
-        generate_desc(resp);
-        handleError(resp);
+    path = get_absolute_path(request->uri, REQ_STATIC, &user_prefix);
+    if (path == NULL) {
+        generate_response(500, response);
         return 0;
     }
 
-    /* not regular file, respond 403 */
-    if (!S_ISREG(pathstat.st_mode)) {
-        DEBUGP("Not regular file");
-        resp->code = 403;
-        generate_desc(resp);
-        handleError(resp);
-        return 0;
-    }
-
-    /* can't execute file, respond 403 */
-    if (access(cgipath, X_OK) == -1) {
-        DEBUGP("Fail to access file");
-        resp->code = 403;
-        generate_desc(resp);
-        handleError(resp);
-        return 0;
-    }
-
-    if (pipe(pipefd) == -1) {
-        WARNP("Fail to create pipe");
-        resp->code = 500;
-        generate_desc(resp);
-        handleError(resp);
-        return 0;
-    }
-
-    pid = fork();
-    if (pid == -1) {
-        WARNP("Fail to fork");
-        resp->code = 500;
-        generate_desc(resp);
-        handleError(resp);
-        return 0;
-    } else if (pid == 0) {
-        while ((dup2(pipefd[1], STDOUT_FILENO) == -1) && (errno == EINTR)) {}
-        close(pipefd[0]);
-        if (execl(cgipath, "", NULL) == -1) {
-            WARNP("Fail to execl");
-            exit(1);
+    do {
+        if ((http_code = validate_stat(path, response, &req_stat)) != 0) {
+            generate_response(http_code, response);
+            break;
         }
-        exit(0);
-    } else {
-        close(pipefd[1]);
-        char *buffer = (char *)malloc(4096);
-        size_t pos = 0;
-        while (1) {
-            ssize_t count = read(pipefd[0], buffer + pos, sizeof(buffer));
-            pos += count;
-            if (count == -1) {
-                if (errno == EINTR) {
-                    continue;
-                } else {
+
+        if (validate_path_security(path, REQ_STATIC, user_prefix) == 0){
+            generate_response(403, response);
+            break;
+        }
+
+        /* not regular file, respond 403 */
+        if (!S_ISREG(req_stat.st_mode)) {
+            DEBUGP("Not regular file");
+            generate_response(403, response);
+            break;
+        }
+
+        /* can't execute file, respond 403 */
+        if (access(path, X_OK) == -1) {
+            DEBUGP("Fail to access file");
+            generate_response(403, response);
+            break;
+        }
+
+        if (pipe(pipefd) == -1) {
+            WARNP("Fail to create pipe");
+            generate_response(500, response);
+            break;
+        }
+
+        pid = fork();
+        if (pid == -1) {
+            WARNP("Fail to fork");
+            generate_response(500, response);
+            break;
+        } else if (pid == 0) {
+            while ((dup2(pipefd[1], STDOUT_FILENO) == -1) && (errno == EINTR)) {}
+            close(pipefd[0]);
+            if (execl(path, "", NULL) == -1) {
+                WARNP("Fail to execl");
+                exit(1);
+            }
+            exit(0);
+        } else {
+            close(pipefd[1]);
+            char *buffer = (char *)malloc(4096);
+            size_t pos = 0;
+            while (1) {
+                ssize_t count = read(pipefd[0], buffer + pos, sizeof(buffer));
+                pos += count;
+                if (count == 0)
+                    break;
+                if (count == -1) {
+                    if (errno == EINTR)
+                        continue;
                     WARNP("Fail to read pipe");
-                    resp->code = 500;
-                    generate_desc(resp);
-                    handleError(resp);
+                    generate_response(500, response);
                     return 0;
                 }
-            } else if (count == 0) {
-                break;
             }
-        }
+            close(pipefd[0]);
+            if (wait(&status) == -1) {
+                WARNP("Fail to wait");
+                generate_response(500, response);
+                return 0;
+            }
 
-        close(pipefd[0]);
-        if (wait(&status) == -1) {
-            WARNP("Fail to wait");
-            resp->code = 500;
-            generate_desc(resp);
-            handleError(resp);
-            return 0;
-        }
+            if (WIFEXITED(status) == 0 ||  WEXITSTATUS(status) != 0) {
+                WARN("CGI exit with error");
+                generate_response(500, response);
+                return 0;
+            }
 
-        if (WIFEXITED(status) == 0 ||  WEXITSTATUS(status) != 0) {
-            WARN("CGI exit with error");
-            resp->code = 500;
-            generate_desc(resp);
-            handleError(resp);
-            return 0;
+            cgi_respond_ok(response, buffer, strlen(buffer));
         }
+    } while ( /* CONSTCOND */ 0 );
 
-        cgi_respond_ok(resp, buffer, strlen(buffer));
-    }
-    return 1;
+    free(path);
+
+    return 0;
 }
 
 void
 cgi_respond_ok(_response *resp, char *buffer, int buflen)
 {
+    buffer[buflen] = '\0';
     resp->code = 200;
     generate_desc(resp);
     resp->body = buffer;
