@@ -186,7 +186,7 @@ set_directory(const _request *request, const char *path, struct stat *req_stat, 
     if (response_addfield(response, "Content-Type", 12, "text/html", 9) != 0) {
         return -1;
     }
-    if ((response->body = generate_index(path)) == NULL) {
+    if ((response->body = generate_index(path, request->uri)) == NULL) {
         return -1;
     }
     snprintf(str, 20, "%ld", (long int)strlen(response->body));

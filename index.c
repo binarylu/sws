@@ -20,7 +20,7 @@ get_time_str(time_t ftime)
 }
 
 char *
-generate_index(const char *path)
+generate_index(const char *path, const char *url)
 {
     char *index_html, *pos;
     int left, count;
@@ -43,7 +43,7 @@ generate_index(const char *path)
         }
 
         if ((count = snprintf(pos, left, "<head><title>Path %s</title></head><body>Path %s<div><table class='list'><tr class='nohover'><th class='left'>Name</th><th class='right'>Size</th><th class='left'>Last Modified</th></tr>",
-                        path, path)) < 0) {
+                        url, url)) < 0) {
             WARN("generate_index(): write error");
             free(index_html);
             return NULL;
@@ -63,7 +63,7 @@ generate_index(const char *path)
                 lstat(dp->d_name, &sb);
                 if (dp->d_name[0] != '.') {
                     count = snprintf(pos, left, "<tr><td><a href='%s/%s'>%s</a></td><td>%lu</td><td>%s</td></tr>",
-                                    path, dp->d_name, dp->d_name, (long unsigned int)sb.st_size, get_time_str(sb.st_mtime));
+                                    url, dp->d_name, dp->d_name, (long unsigned int)sb.st_size, get_time_str(sb.st_mtime));
                     pos += count;
                     left -= count;
                 }
