@@ -5,6 +5,7 @@ handle_static(/*Input*/_request *request, /*Output*/_response *response)
 {
     char time_buff[MAX_TIME_SIZE];
     char *uri;
+    char *user_prefix = NULL;
 
     get_date_rfc1123(time_buff, MAX_TIME_SIZE);
     if (response_addfield(response, "Date", 4, time_buff, strlen(time_buff)) != 0) {
@@ -39,7 +40,7 @@ handle_static(/*Input*/_request *request, /*Output*/_response *response)
         handleError(response);
         return 0;
     }
-    request->uri = get_absolute_path(request->uri, REQ_STATIC);
+    request->uri = get_absolute_path(request->uri, REQ_STATIC, &user_prefix);
     free(uri);
 
     if (request->uri == NULL) {
@@ -50,7 +51,6 @@ handle_static(/*Input*/_request *request, /*Output*/_response *response)
     }
 
     return handle_static_helper(request, response);
-
 }
 
 int
@@ -86,7 +86,7 @@ handle_static_helper(/*Input*/_request *request, /*Output*/_response *response)
         return 0;
     }
 
-    if (validate_path_security(request->uri, REQ_STATIC) == 0){
+    if (validate_path_security(request->uri, REQ_STATIC, user_prefix) == 0){
         response->code = 403;
         generate_desc(response);
         handleError(response);

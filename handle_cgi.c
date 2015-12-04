@@ -6,7 +6,7 @@ void cgi_respond_ok(_response *, char *, int);
 int
 handle_cgi(/*Input*/const _request *req, /*Output*/_response *resp)
 {
-    char *cgipath = get_absolute_path(req->uri, REQ_CGI);
+    char *cgipath = get_absolute_path(req->uri, REQ_CGI, NULL);
     struct stat pathstat;
     int pipefd[2];
     pid_t pid;

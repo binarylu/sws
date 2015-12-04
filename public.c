@@ -245,7 +245,7 @@ validate_path(const char *path)
 }
 
 int
-validate_path_security(const char *path, _request_type req_type)
+validate_path_security(const char *path, _request_type req_type, char *user_prefix)
 {
     int ret = 0;
     const char *server_dir = NULL;
@@ -255,7 +255,7 @@ validate_path_security(const char *path, _request_type req_type)
 
     switch (req_type) {
         case REQ_CGI: server_dir = g_dir_cgi; break;
-        case REQ_STATIC: server_dir = g_dir; break;
+        case REQ_STATIC: server_dir = user_prefix == NULL ? g_dir : user_prefix; break;
         default: return 0;
     }
     if (server_dir == NULL)
@@ -285,11 +285,13 @@ validate_path_security(const char *path, _request_type req_type)
         free(real_path);
     if (real_server_dir)
         free(real_server_dir);
+    if (user_prefix)
+        free(user_prefix);
     return ret;
 }
 
 char *
-get_absolute_path(const char *path, _request_type req_type)
+get_absolute_path(const char *path, _request_type req_type, char **user_prefix)
 {
     char *abs_path = NULL;
     const char *username = NULL;
@@ -305,7 +307,6 @@ get_absolute_path(const char *path, _request_type req_type)
             snprintf(abs_path, PATH_MAX, "%s%s", g_dir_cgi, path+1);
         else
             snprintf(abs_path, PATH_MAX, "%s%s", g_dir_cgi, path);
-
     } else if (req_type == REQ_STATIC) {
         username = seperate_string(path, "/", &username_len, 1);
         --username_len;
@@ -314,6 +315,12 @@ get_absolute_path(const char *path, _request_type req_type)
             snprintf(abs_path, 6 + username_len + 1, "/home/%s", username + 1);
             snprintf(abs_path + 6 + username_len,
                     PATH_MAX - (6 + username_len), "/sws%s", path);
+            *user_prefix = (char *)malloc(sizeof(char) * (128 + 10));
+            if (*user_prefix == NULL)
+                return NULL;
+            snprintf(*user_prefix, 6 + username_len + 1, "/home/%s", username + 1);
+            snprintf(*user_prefix + 6 + username_len,
+                    128 + 10 - (6 + username_len), "/sws");
         } else {
             if (g_dir[strlen(g_dir)-1] == '/' && path[0] == '/')
                 snprintf(abs_path, PATH_MAX, "%s%s", g_dir, path+1);
