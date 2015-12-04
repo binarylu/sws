@@ -77,10 +77,10 @@ generate_str(const char* desc)
 {
     size_t len = strlen(desc);
     char* tmp = (char*)malloc(sizeof(char)*(len+1));
-    if (tmp == NULL)
-        return NULL;
-    strncpy(tmp, desc, len);
-    tmp[len] = '\0';
+    if (tmp != NULL) {
+        strncpy(tmp, desc, len);
+        tmp[len] = '\0';
+    }
     return tmp;
 }
 
@@ -90,15 +90,17 @@ generate_str(const char* desc)
 #define code404 "<!DOCTYPE HTML PUBLIC \"-//IETF//DTD HTML 2.0//EN\">\n<html><head>\n<title>404 Not Found</title>\n</head><body>\n<h1>404 Not Found</h1>\n<p>Your browser sent a request that this server could not find.<br />\n</p>\n</body></html>\n"
 #define code500 "<!DOCTYPE HTML PUBLIC \"-//IETF//DTD HTML 2.0//EN\">\n<html><head>\n<title>500 Internal Server Error</title>\n</head><body>\n<h1>500 Internal Server Error</h1>\n<p>Your browser sent a request that this server get error.<br />\n</p>\n</body></html>\n"
 
-#define error_page(http_code) do { \
-    size_t len = strlen(code##http_code); \
-    response->body = (char *)malloc(sizeof(char) * (len + 1)); \
-    strncpy(response->body, code##http_code, len); \
-    response->body[len] = '\0'; \
-    snprintf(str, sizeof(str), "%d", (int)strlen(response->body)); \
+#define error_page(http_code) do {                                       \
+    size_t len = strlen(code##http_code);                                \
+    response->body = (char *)malloc(sizeof(char) * (len + 1));           \
+    if (response->body != NULL) {                                        \
+        strncpy(response->body, code##http_code, len);                   \
+        response->body[len] = '\0';                                      \
+    }                                                                    \
+    snprintf(str, sizeof(str), "%ld", (long int)strlen(response->body));       \
     response_addfield(response, "Content-Length", 14, str, strlen(str)); \
-    response_addfield(response, "Content-Type", 12, "text/html", 9); \
-} while(0)
+    response_addfield(response, "Content-Type", 12, "text/html", 9);     \
+} while( /* CONSTCOND */ 0 )
 
 int
 handleError(_response* response) {
@@ -119,4 +121,58 @@ handleError(_response* response) {
         default:break;
     }
     return 0;
+}
+
+int
+validate_request(/*Input*/const _request *request, /*Output*/_response *response)
+{
+    int ret = 0;
+    if (request->errcode != NO_ERR) {
+        if (request->errcode == SYSTEM_ERR)
+            ret = 500;
+        else
+            ret = 400;
+        return ret;
+    }
+
+    if (request->version == NULL ||
+            request->uri == NULL) {
+        ret = 400;
+        return ret;
+    }
+
+    return ret;
+}
+
+int
+validate_stat(/*Input*/const char *path, /*Output*/_response *response, struct stat *req_stat)
+{
+    int ret = 0;
+    if (stat(path, req_stat) < 0) {
+        if (errno == ENOENT)
+            ret = 404;
+        else if (errno == EACCES)
+            ret = 403;
+        else
+            ret = 400;
+        return ret;
+    }
+
+    if (access(path, R_OK) < 0) {
+        if (errno == EACCES)
+            ret = 403;
+        else
+            ret = 400;
+        return ret;
+    }
+    return ret;
+}
+
+void
+generate_response(int code, _response *response)
+{
+    response->code = code;
+    generate_desc(response);
+    if (code != 200 && code != 304)
+        handleError(response);
 }
