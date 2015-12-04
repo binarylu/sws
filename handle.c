@@ -4,17 +4,6 @@
 static _request_type get_request_type(_request *request);
 
 int
-init_handle()
-{
-    return 0;
-}
-
-void
-destroy_handle()
-{
-}
-
-int
 handle(_connection *connection)
 {
     char ip[INET6_ADDRSTRLEN];

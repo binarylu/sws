@@ -12,8 +12,6 @@
 
 #define BUFFSIZE 40960
 
-int init_handle();
 int handle(_connection *connection);
-void destroy_handle();
 
 #endif /* !_HANDLE_H_ */

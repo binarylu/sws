@@ -70,17 +70,13 @@ int main(int argc, char *argv[])
     DEBUG("ip = %s", ip);
     DEBUG("port = %s", port);
 
-#if 1
     if (g_debug == 0)
         if (daemon(1, 0) != 0) {
             FATAL_ERROR("Fail to daemon!");
         }
-#endif
 
     network_loop(ip, port);
 
-    /*if (logfile != NULL)
-        close_log();*/
     return 0;
 }
 

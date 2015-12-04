@@ -161,12 +161,6 @@ init_log(const char *filename)
     fclose(f);
     return 0;
 }
-/*
-void
-close_log()
-{
-    fclose(g_log);
-}*/
 
 void
 get_year_mon_day(int* year, int* mon, int* day)
