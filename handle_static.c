@@ -49,12 +49,6 @@ handle_static(/*Input*/_request *request, /*Output*/_response *response)
         return 0;
     }
 
-    if (validate_path_security(request->uri, REQ_STATIC) == 0){
-        response->code = 403;
-        generate_desc(response);
-        handleError(response);
-        return 0;
-    }
     return handle_static_helper(request, response);
 
 }
@@ -92,6 +86,12 @@ handle_static_helper(/*Input*/_request *request, /*Output*/_response *response)
         return 0;
     }
 
+    if (validate_path_security(request->uri, REQ_STATIC) == 0){
+        response->code = 403;
+        generate_desc(response);
+        handleError(response);
+        return 0;
+    }
 
     if (if_modified(request, &req_stat)) {
         response->code = 304;
