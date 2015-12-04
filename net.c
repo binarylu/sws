@@ -127,10 +127,6 @@ network_loop(char *address, char *port)
         FD_SET(listen_sock[i], &fdset);
     }
 
-    if (init_handle() != 0) {
-        ERROR("Fail to initial handle!");
-    }
-
     for (;;) {
         rset = fdset;
         if (select(fd_max + 1, &rset, NULL, NULL, NULL) < 0) {
@@ -200,8 +196,6 @@ network_loop(char *address, char *port)
     }
 
     free(listen_sock);
-
-    destroy_handle();
 }
 
 int
