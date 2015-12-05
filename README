@@ -13,3 +13,22 @@ yjiang23 can write.
 lliu19 can write.
 gyang4 can write.
 xli76 can write.
+
+
+Version:
+    HTTP/1.0 is the correct version
+    If the version is not correct, like HTTP/1.1 HTTP/bacon
+    Program will handle it as HTTP/1.0 and return the correct result
+
+Code status:
+    We support 200, 304, 400, 403, 404, 500
+
+Check process
+    First, check whether request is valid, if not, return 400
+    Then, check whether the request stat is valid, 
+        If not found, return 404
+        If the permission deny , return 403
+        Other error return 400
+    Then check whether the request path is valid, if not,return 403
+    Other server error, return 500
+    If all process succeed, return 200

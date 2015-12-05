@@ -84,7 +84,7 @@ void get_date_asctime(char *buf, size_t len);
 const char *seperate_string(const char *str, const char *delim,
         size_t *len, int idx);
 int validate_path(const char *path);
-int validate_path_security(const char *path, _request_type req_type, char *user_prefix);
+int validate_path_security(const char *path, _request_type req_type, char **user_prefix);
 
 /*
  * Caller is responsible to free the return memory
