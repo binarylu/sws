@@ -27,6 +27,7 @@ handle(_connection *connection)
             free(connection->buf);
             connection->buf = NULL;
         }
+        WARNP("Fail to read connection buffer");
         return -1;
     } else if (nread == 0) {
         if (connection->buf != NULL) {
@@ -93,6 +94,7 @@ handle(_connection *connection)
                     free(connection->buf);
                     connection->buf = NULL;
                 }
+                WARNP("Fail to encode response");
                 return -1;
             }
 
