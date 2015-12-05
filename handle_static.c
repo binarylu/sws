@@ -67,8 +67,6 @@ handle_static(/*Input*/const _request *request, /*Output*/_response *response)
     } while ( /* CONSTCOND */ 0 );
 
     free(path);
-    if (user_prefix != NULL)
-        free(user_prefix);
 
     return 0;
 }

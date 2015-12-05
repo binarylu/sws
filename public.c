@@ -316,7 +316,6 @@ validate_path_security(const char *path, _request_type req_type, char *user_pref
         free(real_server_dir);
     if (user_prefix) {
         free(user_prefix);
-        user_prefix = NULL;
     }
     return ret;
 }

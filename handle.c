@@ -88,6 +88,13 @@ handle(_connection *connection)
             }
 
             char *resp = encode_response(response);
+            if (resp == NULL) {
+                if (connection->buf != NULL) {
+                    free(connection->buf);
+                    connection->buf = NULL;
+                }
+                return -1;
+            }
 
             DEBUG("========== Response =========");
             DEBUG("Response to %s->\n%s", ip, response->body == NULL ? "" : response->body);
