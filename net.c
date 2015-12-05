@@ -7,6 +7,7 @@ init_net(const char *address, const char *port, int **listen_sock)
     int *socks, sock;
     int sock_num = 0;
     struct addrinfo hints, *result = NULL, *rp = NULL;
+    int backlog = g_debug == 1 ? 1 : MAX_LISTEN;
 
 #ifdef DEVELOPMENT
         char ip[INET6_ADDRSTRLEN] = {0};
@@ -62,7 +63,7 @@ init_net(const char *address, const char *port, int **listen_sock)
             close(sock);
             continue;
         }
-        if (listen(sock, MAX_LISTEN) < 0) {
+        if (listen(sock, backlog) < 0) {
             DEBUGP("listen");
             --sock_num;
             close(sock);

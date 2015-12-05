@@ -4,6 +4,6 @@ int
 main(void)
 {
     printf( "Content-Type: text/plain\r\n\r\n" );
-    printf("H\n");
+    printf("Hello World!\n");
     return 0;
 }
