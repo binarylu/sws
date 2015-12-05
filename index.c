@@ -62,8 +62,12 @@ generate_index(const char *path, const char *url)
                 dp = dirlist[dirindex];
                 lstat(dp->d_name, &sb);
                 if (dp->d_name[0] != '.') {
-                    count = snprintf(pos, left, "<tr><td><a href='%s/%s'>%s</a></td><td>%lu</td><td>%s</td></tr>",
-                                    url, dp->d_name, dp->d_name, (long unsigned int)sb.st_size, get_time_str(sb.st_mtime));
+                    if (url[strlen(url) - 1] == '/')
+                        count = snprintf(pos, left, "<tr><td><a href='%s%s'>%s</a></td><td>%lu</td><td>%s</td></tr>",
+                                url, dp->d_name, dp->d_name, (long unsigned int)sb.st_size, get_time_str(sb.st_mtime));
+                    else
+                        count = snprintf(pos, left, "<tr><td><a href='%s/%s'>%s</a></td><td>%lu</td><td>%s</td></tr>",
+                                url, dp->d_name, dp->d_name, (long unsigned int)sb.st_size, get_time_str(sb.st_mtime));
                     pos += count;
                     left -= count;
                 }
