@@ -22,11 +22,19 @@ handle(_connection *connection)
         memset(connection->buf, 0, BUFFSIZE);
     }
     nread = read(connection->fd, connection->buf + connection->pos, BUFFSIZE);
-    if (nread < 0)
+    if (nread < 0) {
+        if (connection->buf != NULL) {
+            free(connection->buf);
+            connection->buf = NULL;
+        }
         return -1;
-    else if (nread == 0)
+    } else if (nread == 0) {
+        if (connection->buf != NULL) {
+            free(connection->buf);
+            connection->buf = NULL;
+        }
         return 0;
-    else {
+    } else {
         connection->pos += nread;
         if (strlen(connection->buf) < 5)
             return 2;
@@ -43,6 +51,10 @@ handle(_connection *connection)
             response = connection->response;
 
             if (decode_request(connection->buf, request) != 0) {
+                if (connection->buf != NULL) {
+                    free(connection->buf);
+                    connection->buf = NULL;
+                }
                 RET_ERROR(-1, "Decode request error");
             }
 
