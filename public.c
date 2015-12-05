@@ -7,10 +7,14 @@ free_headers(_header_entry *p)
     while (p) {
         prev = p;
         p = p->next;
-        if (prev->key != NULL)
+        if (prev->key != NULL) {
             free(prev->key);
-        if (prev->value != NULL)
+            prev->key = NULL;
+        }
+        if (prev->value != NULL) {
             free(prev->value);
+            prev->value = NULL;
+        }
         free(prev);
     }
 }
@@ -57,6 +61,7 @@ request_addfield(_request *req, const char *key,
     }
     if ((node->value = (char *)malloc(vallen + 1)) == NULL) {
         free(node->key);
+        node->key = NULL;
         free(node);
         return -1;
     }
@@ -125,6 +130,7 @@ response_addfield(_response *resp, const char *key,
     }
     if ((node->value = (char *)malloc(vallen + 1)) == NULL) {
         free(node->key);
+        node->key = NULL;
         free(node);
         return -1;
     }
@@ -285,8 +291,10 @@ validate_path_security(const char *path, _request_type req_type, char *user_pref
         free(real_path);
     if (real_server_dir)
         free(real_server_dir);
-    if (user_prefix)
+    if (user_prefix) {
         free(user_prefix);
+        user_prefix = NULL;
+    }
     return ret;
 }
 

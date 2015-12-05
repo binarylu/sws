@@ -25,7 +25,7 @@ handle_cgi(/*Input*/const _request *request, /*Output*/_response *response)
         return 0;
     }
 
-    path = get_absolute_path(request->uri, REQ_STATIC, &user_prefix);
+    path = get_absolute_path(request->uri, REQ_CGI, &user_prefix);
     if (path == NULL) {
         generate_response(500, response);
         return 0;
@@ -37,7 +37,7 @@ handle_cgi(/*Input*/const _request *request, /*Output*/_response *response)
             break;
         }
 
-        if (validate_path_security(path, REQ_STATIC, user_prefix) == 0){
+        if (validate_path_security(path, REQ_CGI, user_prefix) == 0){
             generate_response(403, response);
             break;
         }
@@ -105,6 +105,7 @@ handle_cgi(/*Input*/const _request *request, /*Output*/_response *response)
                 return 0;
             }
 
+            buffer[pos] = '\0';
             cgi_respond_ok(response, buffer, strlen(buffer));
         }
     } while ( /* CONSTCOND */ 0 );
@@ -117,7 +118,6 @@ handle_cgi(/*Input*/const _request *request, /*Output*/_response *response)
 void
 cgi_respond_ok(_response *resp, char *buffer, int buflen)
 {
-    buffer[buflen] = '\0';
     resp->code = 200;
     generate_desc(resp);
     resp->body = buffer;

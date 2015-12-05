@@ -55,17 +55,18 @@ handle(_connection *connection)
                 DEBUG("%s =====>>>>>> %s", p->key, p->value);
                 p = p->next;
             }
+            char *user_prefix = NULL;
 #endif
 
             DEBUG("========== Request handle =========");
             switch (get_request_type(request)) {
                 case REQ_CGI:
                     handle_cgi(request, response);
-                    DEBUG("cgi abs path: %s", get_absolute_path(request->uri, REQ_CGI));
+                    DEBUG("cgi abs path: %s", get_absolute_path(request->uri, REQ_CGI, &user_prefix));
                     break;
                 case REQ_STATIC:
                     handle_static(request, response);
-                    DEBUG("static abs path: %s", get_absolute_path(request->uri, REQ_STATIC));
+                    DEBUG("static abs path: %s", get_absolute_path(request->uri, REQ_STATIC, &user_prefix));
                     break;
                 default: handle_static(request, response);
             }
