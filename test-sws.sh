@@ -25,6 +25,9 @@ no-leading-slash
 /~jschauma/
 /~jschauma/oink
 /~jschauma/d/f
+/~xlu9/
+/~xlu9/oink
+/~xlu9/d/f
 /~nobody
 /nowhere
 /passwd
@@ -79,11 +82,11 @@ uris() {
 	printf "GET HTTP/1.0\r\n\r\n"  | nc ${SERVER} ${PORT}
 }
 
-cleanup() {
-	pkill telnet
-}
+#cleanup() {
+	#pkill telnet
+#}
 
-trap 'cleanup' 0
+#trap 'cleanup' 0
 
 protocols
 requests
@@ -92,4 +95,4 @@ uris
 #pid=$$
 #( sleep 300; kill -s ALRM $pid ) &
 
-telnet ${SERVER} ${PORT} >/dev/null
+#telnet ${SERVER} ${PORT} >/dev/null
