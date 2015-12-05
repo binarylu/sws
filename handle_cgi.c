@@ -80,6 +80,11 @@ handle_cgi(/*Input*/const _request *request, /*Output*/_response *response)
         } else {
             close(pipefd[1]);
             char *buffer = (char *)malloc(4096);
+            if (buffer == NULL) {
+                WARNP("Fail to malloc");
+                generate_response(500, response);
+                break;
+            }
             size_t pos = 0;
             while (1) {
                 ssize_t count = read(pipefd[0], buffer + pos, sizeof(buffer));
@@ -90,6 +95,7 @@ handle_cgi(/*Input*/const _request *request, /*Output*/_response *response)
                     if (errno == EINTR)
                         continue;
                     WARNP("Fail to read pipe");
+                    free(buffer);
                     generate_response(500, response);
                     free(path);
                     if (user_prefix != NULL)
