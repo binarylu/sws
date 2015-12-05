@@ -5,9 +5,11 @@ handle_static(/*Input*/const _request *request, /*Output*/_response *response)
 {
     char time_buff[MAX_TIME_SIZE];
     char *path;
-    char *user_prefix = NULL;
+    char *user_prefix;
     int http_code;
     struct stat req_stat;
+
+    user_prefix = NULL;
 
     get_date_rfc1123(time_buff, MAX_TIME_SIZE);
     if (response_addfield(response, "Date", 4, time_buff, strlen(time_buff)) != 0) {
@@ -33,7 +35,7 @@ handle_static(/*Input*/const _request *request, /*Output*/_response *response)
             break;
         }
 
-        if (validate_path_security(path, REQ_STATIC, user_prefix) == 0){
+        if (validate_path_security(path, REQ_STATIC, &user_prefix) == 0){
             generate_response(403, response);
             break;
         }
@@ -67,6 +69,10 @@ handle_static(/*Input*/const _request *request, /*Output*/_response *response)
     } while ( /* CONSTCOND */ 0 );
 
     free(path);
+    if (user_prefix != NULL) {
+        free(user_prefix);
+        user_prefix = NULL;
+    }
 
     return 0;
 }

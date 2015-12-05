@@ -8,7 +8,6 @@ handle_cgi(/*Input*/const _request *request, /*Output*/_response *response)
 {
     char time_buff[MAX_TIME_SIZE];
     char *path;
-    char *user_prefix = NULL;
     int http_code;
     struct stat req_stat;
     int pipefd[2];
@@ -25,11 +24,9 @@ handle_cgi(/*Input*/const _request *request, /*Output*/_response *response)
         return 0;
     }
 
-    path = get_absolute_path(request->uri, REQ_CGI, &user_prefix);
+    path = get_absolute_path(request->uri, REQ_CGI, NULL);
     if (path == NULL) {
         generate_response(500, response);
-        if (user_prefix != NULL)
-            free(user_prefix);
         return 0;
     }
 
@@ -39,7 +36,7 @@ handle_cgi(/*Input*/const _request *request, /*Output*/_response *response)
             break;
         }
 
-        if (validate_path_security(path, REQ_CGI, user_prefix) == 0){
+        if (validate_path_security(path, REQ_CGI, NULL) == 0){
             generate_response(403, response);
             break;
         }
@@ -98,8 +95,6 @@ handle_cgi(/*Input*/const _request *request, /*Output*/_response *response)
                     free(buffer);
                     generate_response(500, response);
                     free(path);
-                    if (user_prefix != NULL)
-                        free(user_prefix);
                     return 0;
                 }
             }
@@ -124,8 +119,6 @@ handle_cgi(/*Input*/const _request *request, /*Output*/_response *response)
     } while ( /* CONSTCOND */ 0 );
 
     free(path);
-    if (user_prefix != NULL)
-        free(user_prefix);
 
     return 0;
 }

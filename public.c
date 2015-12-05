@@ -274,7 +274,7 @@ validate_path(const char *path)
 }
 
 int
-validate_path_security(const char *path, _request_type req_type, char *user_prefix)
+validate_path_security(const char *path, _request_type req_type, char **user_prefix)
 {
     int ret = 0;
     const char *server_dir = NULL;
@@ -284,7 +284,7 @@ validate_path_security(const char *path, _request_type req_type, char *user_pref
 
     switch (req_type) {
         case REQ_CGI: server_dir = g_dir_cgi; break;
-        case REQ_STATIC: server_dir = user_prefix == NULL ? g_dir : user_prefix; break;
+        case REQ_STATIC: server_dir = *user_prefix == NULL ? g_dir : *user_prefix; break;
         default: return 0;
     }
     if (server_dir == NULL)
@@ -310,12 +310,13 @@ validate_path_security(const char *path, _request_type req_type, char *user_pref
         ret = 1;
     } while( /* CONSTCOND */ 0);
 
-    if (real_path)
+    if (real_path != NULL)
         free(real_path);
-    if (real_server_dir)
+    if (real_server_dir != NULL)
         free(real_server_dir);
-    if (user_prefix) {
-        free(user_prefix);
+    if (user_prefix != NULL && *user_prefix != NULL) {
+        free(*user_prefix);
+        *user_prefix = NULL;
     }
     return ret;
 }
@@ -362,10 +363,6 @@ get_absolute_path(const char *path, _request_type req_type, char **user_prefix)
             else
                 snprintf(abs_path, PATH_MAX, "%s%s", g_dir, path);
         }
-    } else {
-        /* NOTREACHED */
-        WARN("Unknown request type");
-        exit(EXIT_FAILURE);
     }
 
     if (abs_path[strlen(abs_path) - 1] == '/')

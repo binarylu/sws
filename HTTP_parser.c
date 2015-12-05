@@ -29,8 +29,9 @@ try_capture(const char **pstr, char c)
 {
     const char *loc, *tmp;
     char *buf;
-    int count = 0;
+    int count;
 
+    count = 0;
     buf = NULL;
     if ((loc = strchr(*pstr, c)) != NULL) {
         if ((tmp = strchr(*pstr, CR)) != NULL && tmp < loc)
@@ -368,6 +369,16 @@ decode_request(/*Input*/const char *content, /*Output*/_request *request)
 
     request->errcode = NO_ERR;
     if ((progress = request_line(content, request)) != NULL) {
+        if (request->uri == NULL || strlen(request->uri) == 0 ||
+                request->uri[0] == ' ') {
+            request->errcode = REQ_LINE_ERR;
+            return 0;
+        }
+        if (request->version == NULL || strlen(request->version) == 0 ||
+                request->version[0] == ' ') {
+            request->errcode = REQ_LINE_ERR;
+            return 0;
+        }
         content = progress;
     } else {
         request->errcode = REQ_LINE_ERR;
@@ -391,7 +402,6 @@ decode_request(/*Input*/const char *content, /*Output*/_request *request)
     if (try_match(&content, CRLF, 2))
         return 0;
     else {
-        request_clear(request);
         request->errcode = FORMAT_ERR;
         return 0;
     }
