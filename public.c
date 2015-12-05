@@ -59,6 +59,9 @@ request_addfield(_request *req, const char *key,
     _header_entry *last;
     _header_entry *node;
 
+    if (req == NULL)
+        return -1;
+
     node = (_header_entry *)malloc(sizeof(_header_entry));
     if (node == NULL)
         return -1;
@@ -136,6 +139,9 @@ response_addfield(_response *resp, const char *key,
 {
     _header_entry *last;
     _header_entry *node;
+
+    if (resp == NULL)
+        return -1;
 
     node = (_header_entry *)malloc(sizeof(_header_entry));
     if (node == NULL)

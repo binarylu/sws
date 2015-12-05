@@ -34,6 +34,8 @@ init_net(const char *address, const char *port, int **listen_sock)
     }
     DEBUG("========== init net =========");
     DEBUG("sock_num: %d", sock_num);
+    if (sock_num == 0)
+        return sock_num;
     *listen_sock = (int *)malloc(sizeof(int) * sock_num);
     assert(*listen_sock);
 
