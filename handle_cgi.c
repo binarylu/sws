@@ -91,6 +91,9 @@ handle_cgi(/*Input*/const _request *request, /*Output*/_response *response)
                         continue;
                     WARNP("Fail to read pipe");
                     generate_response(500, response);
+                    free(path);
+                    if (user_prefix != NULL)
+                        free(user_prefix);
                     return 0;
                 }
             }
@@ -98,13 +101,13 @@ handle_cgi(/*Input*/const _request *request, /*Output*/_response *response)
             if (wait(&status) == -1) {
                 WARNP("Fail to wait");
                 generate_response(500, response);
-                return 0;
+                break;
             }
 
             if (WIFEXITED(status) == 0 ||  WEXITSTATUS(status) != 0) {
                 WARN("CGI exit with error");
                 generate_response(500, response);
-                return 0;
+                break;
             }
 
             buffer[pos] = '\0';
