@@ -107,7 +107,12 @@ response_clear(_response *resp)
         free(resp->body);
     if (resp->header_entry != NULL)
         free_headers(resp->header_entry);
-    response_init(resp);
+    resp->code = -1;
+    resp->desc = NULL;
+    resp->version = HTTP_VERSION;
+    resp->header_entry = NULL;
+    resp->body = NULL;
+    resp->is_cgi = 0;
 }
 
 /*
@@ -306,8 +311,10 @@ get_absolute_path(const char *path, _request_type req_type, char **user_prefix)
     size_t username_len;
 
     abs_path = (char *)malloc(sizeof(char) * PATH_MAX);
-    if (abs_path == NULL)
+    if (abs_path == NULL) {
+        WARNP("can't allocate memory");
         return NULL;
+    }
 
     if (req_type == REQ_CGI) {
         path += strlen("/cgi-bin");
@@ -324,8 +331,11 @@ get_absolute_path(const char *path, _request_type req_type, char **user_prefix)
             snprintf(abs_path + 6 + username_len,
                     PATH_MAX - (6 + username_len), "/sws%s", path);
             *user_prefix = (char *)malloc(sizeof(char) * (128 + 10));
-            if (*user_prefix == NULL)
+            if (*user_prefix == NULL) {
+                WARNP("can't allocate memory");
+                free(abs_path);
                 return NULL;
+            }
             snprintf(*user_prefix, 6 + username_len + 1, "/home/%s", username + 1);
             snprintf(*user_prefix + 6 + username_len,
                     128 + 10 - (6 + username_len), "/sws");
@@ -336,7 +346,9 @@ get_absolute_path(const char *path, _request_type req_type, char **user_prefix)
                 snprintf(abs_path, PATH_MAX, "%s%s", g_dir, path);
         }
     } else {
-        return NULL;
+        /* NOTREACHED */
+        WARN("Unknown request type");
+        exit(EXIT_FAILURE);
     }
 
     if (abs_path[strlen(abs_path) - 1] == '/')
