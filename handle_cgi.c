@@ -106,12 +106,14 @@ handle_cgi(/*Input*/const _request *request, /*Output*/_response *response)
             close(pipefd[0]);
             if (wait(&status) == -1) {
                 WARNP("Fail to wait");
+                free(buffer);
                 generate_response(500, response);
                 break;
             }
 
             if (WIFEXITED(status) == 0 ||  WEXITSTATUS(status) != 0) {
                 WARN("CGI exit with error");
+                free(buffer);
                 generate_response(500, response);
                 break;
             }

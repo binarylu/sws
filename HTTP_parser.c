@@ -29,10 +29,9 @@ try_capture(const char **pstr, char c)
 {
     const char *loc, *tmp;
     char *buf;
-    int count;
+    int count = 0;
 
     buf = NULL;
-    count = 0;
     if ((loc = strchr(*pstr, c)) != NULL) {
         if ((tmp = strchr(*pstr, CR)) != NULL && tmp < loc)
             loc = tmp;
