@@ -32,13 +32,21 @@ request_init(_request *req)
 void
 request_clear(_request *req)
 {
+    req->method = NONE_METHOD;
+
     if (req->uri != NULL)
         free(req->uri);
+    req->uri = NULL;
+
     if (req->version != NULL)
         free(req->version);
+    req->version = NULL;
+
     if (req->header_entry != NULL)
         free_headers(req->header_entry);
-    request_init(req);
+    req->header_entry = NULL;
+
+    req->errcode = NO_ERR;
 }
 
 /*
@@ -99,15 +107,23 @@ response_init(_response *resp)
 void
 response_clear(_response *resp)
 {
+    resp->code = -1;
     if (resp->desc != NULL)
         free(resp->desc);
+    resp->desc = NULL;
+
     /*if (resp->version != NULL)
         free(resp->version);*/
+
     if (resp->body != NULL)
         free(resp->body);
+    resp->body = NULL;
+
     if (resp->header_entry != NULL)
         free_headers(resp->header_entry);
-    response_init(resp);
+    resp->header_entry = NULL;
+
+    resp->is_cgi = 0;
 }
 
 /*
@@ -324,8 +340,10 @@ get_absolute_path(const char *path, _request_type req_type, char **user_prefix)
             snprintf(abs_path + 6 + username_len,
                     PATH_MAX - (6 + username_len), "/sws%s", path);
             *user_prefix = (char *)malloc(sizeof(char) * (128 + 10));
-            if (*user_prefix == NULL)
+            if (*user_prefix == NULL) {
+                free(abs_path);
                 return NULL;
+            }
             snprintf(*user_prefix, 6 + username_len + 1, "/home/%s", username + 1);
             snprintf(*user_prefix + 6 + username_len,
                     128 + 10 - (6 + username_len), "/sws");
@@ -336,6 +354,7 @@ get_absolute_path(const char *path, _request_type req_type, char **user_prefix)
                 snprintf(abs_path, PATH_MAX, "%s%s", g_dir, path);
         }
     } else {
+        free(abs_path);
         return NULL;
     }
 

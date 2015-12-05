@@ -78,6 +78,7 @@ handle(_connection *connection)
             if ((nwrite = send(connection->fd, resp, strlen(resp), 0)) < 0) {
                 WARNP("Failed to send");
             }
+            free(resp);
 
             request_line = seperate_string(connection->buf, "\r", &request_line_len, 0);
             if (request_line != NULL)
