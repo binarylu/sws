@@ -20,6 +20,10 @@ Version:
     If the version is not correct, like HTTP/1.1 HTTP/bacon
     Program will handle it as HTTP/1.0 and return the correct result
 
+Method:
+    Support the GET and HEAD method
+    If method is POST or other method, return 400
+
 Code status:
     We support 200, 304, 400, 403, 404, 500
 
@@ -32,3 +36,8 @@ Check process
     Then check whether the request path is valid, if not,return 403
     Other server error, return 500
     If all process succeed, return 200
+
+Others:
+    Request: GET /file aaa HTTP/1.0
+    aaa will be the version and ignore the HTTP/1.0
+    Program will handle it as "GET /file HTTP/1.0"
