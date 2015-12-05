@@ -28,6 +28,8 @@ handle_cgi(/*Input*/const _request *request, /*Output*/_response *response)
     path = get_absolute_path(request->uri, REQ_CGI, &user_prefix);
     if (path == NULL) {
         generate_response(500, response);
+        if (user_prefix != NULL)
+            free(user_prefix);
         return 0;
     }
 
@@ -111,6 +113,8 @@ handle_cgi(/*Input*/const _request *request, /*Output*/_response *response)
     } while ( /* CONSTCOND */ 0 );
 
     free(path);
+    if (user_prefix != NULL)
+        free(user_prefix);
 
     return 0;
 }

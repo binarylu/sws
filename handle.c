@@ -55,8 +55,8 @@ handle(_connection *connection)
                 DEBUG("%s =====>>>>>> %s", p->key, p->value);
                 p = p->next;
             }
-            char *user_prefix = NULL;
 #endif
+            char *user_prefix = NULL;
 
             DEBUG("========== Request handle =========");
             switch (get_request_type(request)) {
@@ -70,6 +70,10 @@ handle(_connection *connection)
                     break;
                 default: handle_static(request, response);
             }
+            if (user_prefix != NULL) {
+                free(user_prefix);
+                user_prefix = NULL;
+            }
 
             char *resp = encode_response(response);
 
@@ -78,7 +82,10 @@ handle(_connection *connection)
             if ((nwrite = send(connection->fd, resp, strlen(resp), 0)) < 0) {
                 WARNP("Failed to send");
             }
-            free(resp);
+            if (resp != NULL) {
+                free(resp);
+                resp = NULL;
+            }
 
             request_line = seperate_string(connection->buf, "\r", &request_line_len, 0);
             if (request_line != NULL)

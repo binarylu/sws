@@ -63,8 +63,9 @@ url_decode(char *url)
     char next;
     unsigned int tmp;
 
+    in = out = url;
     end = url + strlen(url);
-    for (in = out = url; in <= end; out++) {
+    for (; in < end; out++) {
         next = *in++;
 
         /* Ignore parameters */
